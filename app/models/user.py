@@ -1,11 +1,21 @@
-from pydantic import BaseModel
-import uuid
+from datetime import datetime, timezone
+from enum import Enum
 
-my_uuid = uuid.uuid4
+from sqlmodel import Field, SQLModel
 
 
-class Users(BaseModel):
-    id: uuid
+class UserRole(str, Enum):
+    DINER = "diner"
+    WAITER = "waiter"
+    KITCHEN = "kitchen"
+    MANAGER = "manager"
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+
+    id: int | None = Field(default=None, primary_key=True)
     email: str
     password_hash: str
-    role: str
+    role: UserRole = Field(default=UserRole.DINER)
+    created_at: datetime = Field(
+        default_factory=lambda:datetime.now(timezone.utc)
+    )
