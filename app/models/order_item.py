@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field
 from decimal import Decimal
 from enum import Enum
 
-class OrderItemStatus(str, Enum)
+class OrderItemStatus(str, Enum):
     PENDING = "pending"
     PREPARING = "preparing"
     READY = "ready"
