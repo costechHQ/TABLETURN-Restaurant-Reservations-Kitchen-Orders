@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 from enum import Enum
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class PaymentStatus(str, Enum):
