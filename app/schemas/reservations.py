@@ -26,8 +26,6 @@ class ReservationActionResponse(BaseModel):
 
 
 class AvailabilityQuery(BaseModel):
-    # table_id: int
     party_size: int = Field(gt=0)
     start_at: datetime
     end_at: datetime
-    # is_available: bool
