@@ -5,10 +5,11 @@ Revises:
 Create Date: 2026-09-18 13:23:40.616793
 
 """
+import sqlmodel
 from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
+
 
 
 # revision identifiers, used by Alembic.
