@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from decimal import Decimal
 from enum import Enum
 
@@ -17,7 +17,7 @@ class OrderItem(SQLModel, table=True):
     )
 
     order_id: int = Field(
-        foreign_key="orders_id",
+        foreign_key="orders.id",
         index=True
     )
 
