@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_session
 from app.models.user import User
-from schemas.auth import RegisterRequest, UserResponse
+from app.schemas.auth import RegisterRequest, UserResponse, TokenResponse, LoginRequest
 
 router = APIRouter(
     prefix="/auth",
@@ -42,3 +42,30 @@ def register(
     session.refresh(user)
 
     return user
+
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+)
+
+def login(
+    data: LoginRequest,
+    session: Session = Depends(get_session),
+):
+    user = session.exec(
+        select(User).where(User.email == data.email)
+    ).first()
+
+    if user is None or not verify_password(data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    access_token = create_access_token(
+        user_id=user.id,
+        role=user.role.value,
+    )
+
+    return TokenResponse(access_token=access_token)

@@ -1,20 +1,30 @@
 from typing import Annotated, Callable
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+#from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session, select
 
 from app.db.session import get_session
 from app.core.security import decode_access_token
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+bearer_scheme = HTTPBearer()
+
+# def get_current_user(
+#         token: Annotated[str, Depends(oauth2_scheme)],
+#         session: Annotated[Session, Depends(get_session)],
+# ) -> User:
 
 def get_current_user(
-        token: Annotated[str, Depends(oauth2_scheme)],
-        session: Annotated[Session, Depends(get_session)],
+    credentials: Annotated[
+        HTTPAuthorizationCredentials,
+        Depends(bearer_scheme),
+    ],
+    session: Annotated[Session, Depends(get_session)],
 ) -> User:
     try:
-        payload = decode_access_token(token)
+        payload = decode_access_token(credentials.credentials)
         user_id = int(payload["sub"])
     except (KeyError, TypeError, ValueError):
         raise HTTPException(
