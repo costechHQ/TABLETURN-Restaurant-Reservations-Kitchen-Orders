@@ -8,12 +8,12 @@ from app.models.user import UserRole
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = "pass@123"
     role: UserRole = UserRole.DINER
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = "pass@123"
 
 class UserResponse(BaseModel):
     id: int
