@@ -47,4 +47,37 @@ def create_reservation(
             detail="Table not found"
         )
 
-    
+    if data.party_size > table.capacity:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Party size exceeds table capacity",
+        )
+
+    overlapping_reservation = session.exec(
+        select(Reservation).where(
+            Reservation.table_id == data.table_id,
+            Reservation.status != "cancelled",
+            Reservation.start_at < data.end_at,
+            Reservation.end_at > data.start_at,
+        )
+    ).first()
+
+    if overlapping_reservation:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Table is already reserved for this time",
+        )
+
+    reservation = Reservation(
+        table_id=data.table_id,
+        diner_id=current_user.id,
+        party_size=data.party_size,
+        start_at=data.start_at,
+        end_at=data.end_at,
+    )
+
+    session.add(reservation)
+    session.commit()
+    session.refresh(reservation)
+
+    return reservation
