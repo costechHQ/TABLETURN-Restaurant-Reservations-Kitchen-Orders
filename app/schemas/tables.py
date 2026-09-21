@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 class TableCreate(BaseModel):
-    name: str = Field
+    code: str
     capacity: int = Field(gt=0)
 
 
