@@ -2,14 +2,14 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr
 from app.models.user import UserRole
-from pydandic import BaseModel, EmailStr
-from app.models.user import userRole
+from pydantic import BaseModel, EmailStr
+from app.models.user import UserRole
 
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    role: userRole = userRole.DINER
+    role: UserRole = UserRole.DINER
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -23,15 +23,11 @@ class UserResponse(BaseModel):
 class userResponse(BaseModel):
     id: int
     email: EmailStr
-    role: userRole
+    role: UserRole
     created_at: datetime
   
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-
-    
-
-
 
