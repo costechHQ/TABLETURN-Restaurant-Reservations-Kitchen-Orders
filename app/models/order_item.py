@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
 from decimal import Decimal
 from enum import Enum
 
@@ -38,4 +38,8 @@ class OrderItem(SQLModel, table=True):
     status: OrderItemStatus = Field(
         default=OrderItemStatus.PENDING,
         index=True
+    )
+
+    order: "Order" = Relationship(
+        back_populates="ordered_items"
     )

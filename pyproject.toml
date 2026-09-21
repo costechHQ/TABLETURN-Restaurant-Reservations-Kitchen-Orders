@@ -7,6 +7,8 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.141.1",
     "psycopg[binary]>=3.3.5",
+    "pwdlib[argon2]>=0.3.1",
     "pydantic-settings>=2.15.0",
+    "pyjwt>=2.14.0",
     "sqlmodel>=0.0.42",
 ]
