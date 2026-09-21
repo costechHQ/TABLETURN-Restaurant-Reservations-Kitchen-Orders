@@ -4,5 +4,6 @@ from app.db.database import engine
 
 
 def get_session() -> Generator[Session, None, None]:
+    """Session function"""
     with Session(engine) as session:
         yield session
