@@ -8,4 +8,3 @@ class MenuItem(SQLModel, table=True):
     description: str | None = Field(default=None, min_length=20, max_length=150)
     price: Decimal
     is_available: bool = True
-    
