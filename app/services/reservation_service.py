@@ -7,8 +7,8 @@ from app.models.reservation import (
     Reservation,
     ReservationStatus,
 )
-from app.models.restaurant_table import RestaurantTable
-from app.schemas.reservation import ReservationCreate
+from app.models.table import RestaurantTable
+from app.schemas.reservations import ReservationCreate
 
 
 def create_reservation(
