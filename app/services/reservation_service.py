@@ -9,6 +9,7 @@ from app.models.reservation import (
 )
 from app.models.table import RestaurantTable
 from app.schemas.reservations import ReservationCreate
+from app.models.user import User, UserRole
 
 
 def create_reservation(
@@ -16,6 +17,7 @@ def create_reservation(
     data: ReservationCreate,
     diner_id: int,
 ) -> Reservation:
+
 
     # Check that the end time is after the start time
     if data.end_at <= data.start_at:
@@ -86,3 +88,26 @@ def create_reservation(
     session.refresh(reservation)
 
     return reservation
+
+
+def get_reservations(
+            session: Session,
+            user: User,
+    ) -> list[Reservation]:
+
+    if user.role == UserRole.DINER:
+        return session.exec(
+            select(Reservation).where(
+                Reservation.diner_id == user.id
+            )
+        ).all()
+
+    if user.role in (UserRole.WAITER, UserRole.MANAGER):
+        return session.exec(
+            select(Reservation)
+        ).all()
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have access to reservations",
+    )

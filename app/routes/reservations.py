@@ -5,6 +5,7 @@ from sqlmodel import Session
 
 from app.services.reservation_service import (
     create_reservation as create_reservation_service,
+    get_reservations,
 )
 
 from app.core.deps import get_current_user
@@ -87,4 +88,20 @@ def create_reservation(
         session=session,
         data=data,
         diner_id=current_user.id,
+    )
+
+@router.get(
+    "",
+    response_model=list[ReservationResponse],
+)
+
+def get_all_reservations(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+
+    
+    return get_reservations(
+        session=session,
+        user=current_user,
     )
