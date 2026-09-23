@@ -8,6 +8,7 @@ from app.services.reservation_service import (
     get_reservations,
     check_availability,
     update_reservation as update_reservation_service,
+    cancel_reservation as cancel_reservation_service,
 )
 
 from app.core.deps import get_current_user
@@ -144,5 +145,20 @@ def update_reservation(
         session=session,
         reservation_id=reservation_id,
         data=data,
+        user=current_user,
+    )
+
+@router.delete(
+    "/{reservation_id}",
+    response_model=ReservationResponse,
+)
+def cancel_reservation(
+    reservation_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return cancel_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
         user=current_user,
     )
