@@ -7,6 +7,7 @@ from app.services.reservation_service import (
     create_reservation as create_reservation_service,
     get_reservations,
     check_availability,
+    update_reservation as update_reservation_service,
 )
 
 from app.core.deps import get_current_user
@@ -16,6 +17,7 @@ from app.schemas.reservations import (
     AvailabilityQuery,
     ReservationCreate, 
     ReservationResponse,
+    ReservationUpdate,
 )
 
 from app.models.table import RestaurantTable
@@ -125,4 +127,22 @@ def check_reservation_availability(
     return check_availability(
         session=session,
         data=data,
+    )
+
+
+@router.put(
+    "/{reservation_id}",
+    response_model=ReservationResponse,
+)
+def update_reservation(
+    reservation_id: int,
+    data: ReservationUpdate,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return update_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
+        data=data,
+        user=current_user,
     )

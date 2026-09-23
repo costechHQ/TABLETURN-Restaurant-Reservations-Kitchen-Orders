@@ -163,3 +163,78 @@ def update_reservation(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reservation not found",
         )
+
+    if user.role == UserRole.DINER and reservation.diner_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own reservations",
+        )
+
+    if user.role not in (UserRole.DINER, UserRole.MANAGER):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update reservations",
+        )
+
+    if reservation.status == ReservationStatus.CANCELLED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cancelled reservations cannot be updated",
+        )
+
+    if data.end_at <= data.start_at:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="End time must be after start time",
+        )
+
+    if data.start_at < datetime.now(data.start_at.tzinfo):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Reservation cannot start in the past",
+        )
+
+    table = session.get(RestaurantTable, data.table_id)
+
+    if not table:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Table not found",
+        )
+
+    if data.party_size > table.capacity:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Party size exceeds table capacity",
+        )
+
+    existing_reservations = session.exec(
+        select(Reservation).where(
+            Reservation.table_id == data.table_id,
+            Reservation.id != reservation.id,
+            Reservation.status != ReservationStatus.CANCELLED,
+        )
+    ).all()
+
+    for existing in existing_reservations:
+        overlaps = (
+            data.start_at < existing.end_at
+            and data.end_at > existing.start_at
+        )
+
+        if overlaps:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Table is already reserved during this time",
+            )
+
+    reservation.table_id = data.table_id
+    reservation.party_size = data.party_size
+    reservation.start_at = data.start_at
+    reservation.end_at = data.end_at
+
+    session.add(reservation)
+    session.commit()
+    session.refresh(reservation)
+
+    return reservation
