@@ -1,0 +1,218 @@
+[
+  {
+    "id": 1,
+    "table_code": "T01",
+    "diner_id": 1,
+    "party_size": 2,
+    "start_at": "2026-09-27T12:00:00",
+    "end_at": "2026-09-27T13:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 2,
+    "table_code": "T02",
+    "diner_id": 2,
+    "party_size": 4,
+    "start_at": "2026-09-27T12:30:00",
+    "end_at": "2026-09-27T14:00:00",
+    "status": "seated"
+  },
+  {
+    "id": 3,
+    "table_code": "T03",
+    "diner_id": 3,
+    "party_size": 2,
+    "start_at": "2026-09-27T13:00:00",
+    "end_at": "2026-09-27T14:30:00",
+    "status": "cancelled"
+  },
+  {
+    "id": 4,
+    "table_code": "T01",
+    "diner_id": 4,
+    "party_size": 2,
+    "start_at": "2026-09-27T14:00:00",
+    "end_at": "2026-09-27T15:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 5,
+    "table_code": "T04",
+    "diner_id": 5,
+    "party_size": 6,
+    "start_at": "2026-09-27T18:00:00",
+    "end_at": "2026-09-27T20:00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 6,
+    "table_code": "T05",
+    "diner_id": 1,
+    "party_size": 3,
+    "start_at": "2026-09-27T19:00:00",
+    "end_at": "2026-09-27T20:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 7,
+    "table_code": "T02",
+    "diner_id": 6,
+    "party_size": 4,
+    "start_at": "2026-09-28T12:00:00",
+    "end_at": "2026-09-28T13:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 8,
+    "table_code": "T02",
+    "diner_id": 7,
+    "party_size": 2,
+    "start_at": "2026-09-28T13:00:00",
+    "end_at": "2026-09-28T14:00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 9,
+    "table_code": "T03",
+    "diner_id": 8,
+    "party_size": 2,
+    "start_at": "2026-09-28T14:00:00",
+    "end_at": "2026-09-28T15:30:00",
+    "status": "seated"
+  },
+  {
+    "id": 10,
+    "table_code": "T05",
+    "diner_id": 2,
+    "party_size": 8,
+    "start_at": "2026-09-28T18:30:00",
+    "end_at": "2026-09-28T20:30:00",
+    "status": "cancelled"
+  },
+  {
+    "id": 11,
+    "table_code": "T01",
+    "diner_id": 3,
+    "party_size": 2,
+    "start_at": "2026-09-29T12:00:00",
+    "end_at": "2026-09-29T13:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 12,
+    "table_code": "T04",
+    "diner_id": 4,
+    "party_size": 5,
+    "start_at": "2026-09-29T13:00:00",
+    "end_at": "2026-09-29T15:00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 13,
+    "table_code": "T04",
+    "diner_id": 5,
+    "party_size": 4,
+    "start_at": "2026-09-29T14:00:00",
+    "end_at": "2026-09-29T15:30:00",
+    "status": "cancelled"
+  },
+  {
+    "id": 14,
+    "table_code": "T05",
+    "diner_id": 6,
+    "party_size": 3,
+    "start_at": "2026-09-29T19:00:00",
+    "end_at": "2026-09-29T20:30:00",
+    "status": "seated"
+  },
+  {
+    "id": 15,
+    "table_code": "T03",
+    "diner_id": 7,
+    "party_size": 2,
+    "start_at": "2026-09-30T12:30:00",
+    "end_at": "2026-09-30T14:00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 16,
+    "table_code": "T05",
+    "diner_id": 8,
+    "party_size": 8,
+    "start_at": "2026-09-30T18:00:00",
+    "end_at": "2026-09-30T20:00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 17,
+    "table_code": "T01",
+    "diner_id": 1,
+    "party_size": 2,
+    "start_at": "2026-09-30T18:30:00",
+    "end_at": "2026-09-30T20:00:00",
+    "status": "cancelled"
+  },
+  {
+    "id": 18,
+    "table_code": "T02",
+    "diner_id": 2,
+    "party_size": 4,
+    "start_at": "2026-10-01T12:00:00",
+    "end_at": "2026-10-01T13:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 19,
+    "table_code": "T02",
+    "diner_id": 3,
+    "party_size": 4,
+    "start_at": "2026-10-01T13:00:00",
+    "end_at": "2026-10-01T14:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 20,
+    "table_code": "T04",
+    "diner_id": 4,
+    "party_size": 6,
+    "start_at": "2026-10-01T18:00:00",
+    "end_at": "2026-10-01T20:00:00",
+    "status": "seated"
+  },
+  {
+    "id": 21,
+    "table_code": "T05",
+    "diner_id": 5,
+    "party_size": 3,
+    "start_at": "2026-10-02T13:00:00",
+    "end_at": "2026-10-02T14:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 22,
+    "table_code": "T05",
+    "diner_id": 6,
+    "party_size": 7,
+    "start_at": "2026-10-02T18:30:00",
+    "end_at": "2026-10-02T20:30:00",
+    "status": "confirmed"
+  },
+  {
+    "id": 23,
+    "table_code": "T03",
+    "diner_id": 7,
+    "party_size": 2,
+    "start_at": "2026-10-03T12:00:00",
+    "end_at": "2026-10-03T13:30:00",
+    "status": "cancelled"
+  },
+  {
+    "id": 24,
+    "table_code": "T01",
+    "diner_id": 8,
+    "party_size": 2,
+    "start_at": "2026-10-03T19:00:00",
+    "end_at": "2026-10-03T20:30:00",
+    "status": "confirmed"
+  }
+]

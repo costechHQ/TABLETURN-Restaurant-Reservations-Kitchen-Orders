@@ -1,0 +1,602 @@
+[
+  {
+    "name": "Jollof Rice with Grilled Chicken",
+    "description": "Fragrant Nigerian-style jollof rice served with a juicy grilled chicken quarter and fried plantain.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Fried Rice with Chicken",
+    "description": "Savory Nigerian fried rice with mixed vegetables and a crispy fried chicken quarter.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "White Rice and Chicken Stew",
+    "description": "Steamed white rice served with rich Nigerian tomato pepper stew and tender chicken.",
+    "price": 4000,
+    "is_available": true
+  },
+  {
+    "name": "Pounded Yam and Egusi Soup",
+    "description": "Smooth pounded yam served with rich melon seed soup cooked with leafy vegetables and assorted meat.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Fufu and Okra Soup",
+    "description": "Soft Nigerian fufu paired with hearty okra soup, assorted meat and fresh fish.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Eba and Efo Riro",
+    "description": "Golden garri eba served with richly seasoned spinach stew and assorted meat.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Amala and Ewedu",
+    "description": "Soft amala served with silky ewedu soup, gbegiri and flavorful beef stew.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Tuwo Shinkafa and Miyan Kuka",
+    "description": "Soft rice flour swallow served with traditional baobab leaf soup and tender beef.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Ofada Rice and Ayamase",
+    "description": "Locally grown Ofada rice served with spicy green pepper sauce and assorted meats.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Coconut Rice with Grilled Fish",
+    "description": "Aromatic coconut-infused rice served with grilled fish and fresh vegetable garnish.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Pepper Soup with Catfish",
+    "description": "Spicy Nigerian catfish pepper soup prepared with aromatic herbs and traditional spices.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Goat Meat Pepper Soup",
+    "description": "Hot and spicy goat meat broth seasoned with fragrant Nigerian pepper soup spices.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Pepper Soup",
+    "description": "Tender chicken simmered in a spicy, aromatic Nigerian pepper soup broth.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Assorted Meat Pepper Soup",
+    "description": "A warming bowl of assorted beef cuts cooked in a richly spiced pepper soup broth.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Grilled Croaker Fish",
+    "description": "Whole croaker fish marinated in Nigerian spices and grilled until smoky and tender.",
+    "price": 7500,
+    "is_available": true
+  },
+  {
+    "name": "Grilled Tilapia Fish",
+    "description": "Fresh tilapia seasoned with herbs and peppers, grilled and served with a spicy sauce.",
+    "price": 7000,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Suya",
+    "description": "Spicy grilled chicken strips coated in classic Nigerian suya spice and served with onions.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Beef Suya",
+    "description": "Thin slices of grilled beef coated in aromatic yaji spice and served with fresh onions.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Ram Suya",
+    "description": "Tender grilled ram meat seasoned with traditional suya spice and fresh onion slices.",
+    "price": 6500,
+    "is_available": true
+  },
+  {
+    "name": "Suya Platter",
+    "description": "Generous platter of beef and chicken suya served with onions, tomatoes and spicy yaji.",
+    "price": 9000,
+    "is_available": true
+  },
+  {
+    "name": "Nigerian Fried Yam",
+    "description": "Crispy golden yam fries served with spicy pepper sauce.",
+    "price": 2500,
+    "is_available": true
+  },
+  {
+    "name": "Yam Porridge with Fish",
+    "description": "Tender yam cubes cooked in a rich peppery sauce with vegetables and fresh fish.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Fried Yam and Egg Sauce",
+    "description": "Crispy fried yam served with a rich tomato, pepper and scrambled egg sauce.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Boiled Yam and Egg Sauce",
+    "description": "Soft boiled yam served with freshly prepared Nigerian-style tomato egg sauce.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Plantain and Egg Sauce",
+    "description": "Sweet fried plantain served with savory scrambled eggs cooked in tomato pepper sauce.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Fried Plantain",
+    "description": "Ripe plantain slices fried until golden, caramelized and lightly crisp.",
+    "price": 1800,
+    "is_available": true
+  },
+  {
+    "name": "Boiled Plantain with Vegetable Sauce",
+    "description": "Tender boiled ripe plantain served with a savory mixed vegetable sauce.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Beans and Fried Plantain",
+    "description": "Creamy Nigerian beans porridge served with sweet golden fried plantain.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Beans Porridge with Fish",
+    "description": "Slow-cooked beans porridge enriched with spices, vegetables and tender fish.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Moi Moi",
+    "description": "Steamed Nigerian bean pudding blended with peppers, onions and aromatic spices.",
+    "price": 2000,
+    "is_available": true
+  },
+  {
+    "name": "Moi Moi with Custard",
+    "description": "Savory steamed bean pudding served with creamy chilled custard.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Akara and Pap",
+    "description": "Crispy Nigerian bean fritters served with smooth warm pap.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Nigerian Beef Burger",
+    "description": "Juicy seasoned beef patty with lettuce, tomato, onion and house sauce in a toasted bun.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Burger",
+    "description": "Crispy chicken fillet with fresh lettuce, tomato, cheese and creamy house sauce.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Shawarma",
+    "description": "Grilled chicken strips wrapped with cabbage, carrots and creamy garlic sauce.",
+    "price": 4000,
+    "is_available": true
+  },
+  {
+    "name": "Beef Shawarma",
+    "description": "Seasoned beef strips wrapped with fresh vegetables and creamy garlic sauce.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Wings",
+    "description": "Crispy chicken wings tossed in a flavorful spicy house glaze.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Spicy Chicken Wings",
+    "description": "Golden chicken wings coated in a hot Nigerian-inspired pepper sauce.",
+    "price": 4800,
+    "is_available": true
+  },
+  {
+    "name": "Chicken and Chips",
+    "description": "Crispy fried chicken served with golden fries and spicy ketchup.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Fish and Chips",
+    "description": "Crispy fried fish fillet served with golden fries and house tartar sauce.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Beef Steak and Fries",
+    "description": "Tender grilled beef steak served with seasoned fries and pepper sauce.",
+    "price": 7500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Pasta",
+    "description": "Creamy pasta tossed with seasoned chicken strips, peppers and vegetables.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Jollof Spaghetti",
+    "description": "Spaghetti cooked in a rich Nigerian jollof sauce with peppers and vegetables.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Spaghetti",
+    "description": "Seasoned spaghetti tossed with grilled chicken, vegetables and a savory sauce.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Seafood Pasta",
+    "description": "Creamy pasta loaded with prawns, calamari and fish in a garlic herb sauce.",
+    "price": 7500,
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Pasta",
+    "description": "Pasta tossed with colorful vegetables in a lightly seasoned tomato sauce.",
+    "price": 3500,
+    "is_available": true
+  },
+  {
+    "name": "Macaroni and Chicken",
+    "description": "Creamy macaroni prepared with tender chicken, vegetables and mild spices.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Nigerian Native Rice",
+    "description": "Flavorful local rice cooked with peppers, smoked fish, crayfish and aromatic spices.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Banga Rice",
+    "description": "Rice cooked in rich palm fruit extract with local spices and smoked fish.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Banga Soup and Starch",
+    "description": "Traditional Delta-style banga soup served with soft yellow starch and assorted meat.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Afang Soup and Eba",
+    "description": "Rich Afang soup prepared with leafy vegetables, assorted meat and stockfish, served with eba.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Edikang Ikong and Pounded Yam",
+    "description": "Nigerian vegetable soup made with ugu and waterleaf, served with smooth pounded yam.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Oha Soup and Fufu",
+    "description": "Traditional Oha leaf soup with assorted meat served alongside soft fufu.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Nsala Soup and Pounded Yam",
+    "description": "Light and flavorful white soup with tender meat served with pounded yam.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Egusi Soup and Eba",
+    "description": "Rich egusi soup with leafy greens and assorted meat served with garri eba.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Okra Soup and Eba",
+    "description": "Fresh okra soup with assorted meat and fish served with soft eba.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Efo Riro and Pounded Yam",
+    "description": "Rich Nigerian spinach stew with assorted meat served with smooth pounded yam.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Gbegiri and Amala",
+    "description": "Silky bean soup served with amala and a flavorful beef pepper stew.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Abula Special",
+    "description": "Classic combination of amala, ewedu, gbegiri and richly seasoned beef stew.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Peppered Snail",
+    "description": "Tender snails sautéed in a spicy tomato and pepper sauce with onions.",
+    "price": 7000,
+    "is_available": true
+  },
+  {
+    "name": "Peppered Gizzard",
+    "description": "Tender chicken gizzard tossed in a spicy pepper sauce with onions and herbs.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Peppered Chicken",
+    "description": "Fried chicken pieces tossed in a spicy Nigerian pepper and onion sauce.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Peppered Beef",
+    "description": "Tender beef strips simmered in a hot pepper, tomato and onion sauce.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Peppered Goat Meat",
+    "description": "Tender goat meat sautéed with fresh peppers, onions and aromatic spices.",
+    "price": 6000,
+    "is_available": true
+  },
+  {
+    "name": "Grilled Prawns",
+    "description": "Fresh prawns marinated with garlic and peppers, grilled and served with lemon.",
+    "price": 8000,
+    "is_available": true
+  },
+  {
+    "name": "Prawn Fried Rice",
+    "description": "Nigerian fried rice loaded with succulent prawns and crisp mixed vegetables.",
+    "price": 6500,
+    "is_available": true
+  },
+  {
+    "name": "Seafood Jollof Rice",
+    "description": "Nigerian jollof rice cooked with prawns, calamari and fish in a rich pepper sauce.",
+    "price": 7500,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Jollof Rice",
+    "description": "Classic Nigerian jollof rice served with tender spicy grilled chicken.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Beef Jollof Rice",
+    "description": "Flavorful jollof rice served with tender pieces of seasoned beef.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Jollof Rice with Fried Fish",
+    "description": "Rich Nigerian jollof rice served with crispy fried fish and plantain.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Fried Rice with Beef",
+    "description": "Seasoned Nigerian fried rice served with tender beef strips and fried plantain.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Fried Rice with Fish",
+    "description": "Vegetable-packed fried rice served with crispy fried fish and pepper sauce.",
+    "price": 5500,
+    "is_available": true
+  },
+  {
+    "name": "Coconut Rice with Chicken",
+    "description": "Creamy aromatic coconut rice served with grilled chicken and vegetables.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "White Rice and Beef Stew",
+    "description": "Steamed white rice paired with rich tomato stew and tender beef pieces.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "White Rice and Fish Stew",
+    "description": "Steamed white rice served with spicy tomato fish stew and fried fish.",
+    "price": 5000,
+    "is_available": true
+  },
+  {
+    "name": "Ofada Rice with Fried Plantain",
+    "description": "Ofada rice served with spicy ayamase sauce, assorted meat and fried plantain.",
+    "price": 6500,
+    "is_available": true
+  },
+  {
+    "name": "Yam Chips and Chicken",
+    "description": "Crispy yam chips served with seasoned fried chicken and spicy dipping sauce.",
+    "price": 4500,
+    "is_available": true
+  },
+  {
+    "name": "Sweet Potato Fries",
+    "description": "Crispy sweet potato fries served with a mildly spicy house dipping sauce.",
+    "price": 2500,
+    "is_available": true
+  },
+  {
+    "name": "Plantain Chips",
+    "description": "Thin slices of ripe plantain fried until crisp and lightly salted.",
+    "price": 1500,
+    "is_available": true
+  },
+  {
+    "name": "Nigerian Meat Pie",
+    "description": "Golden flaky pastry filled with seasoned minced beef, potatoes and carrots.",
+    "price": 1800,
+    "is_available": true
+  },
+  {
+    "name": "Chicken Pie",
+    "description": "Buttery pastry filled with seasoned chicken, potatoes and vegetables.",
+    "price": 2000,
+    "is_available": true
+  },
+  {
+    "name": "Sausage Roll",
+    "description": "Flaky golden pastry wrapped around a well-seasoned sausage filling.",
+    "price": 1500,
+    "is_available": true
+  },
+  {
+    "name": "Puff Puff",
+    "description": "Soft, lightly sweet Nigerian dough balls fried until golden and fluffy.",
+    "price": 1200,
+    "is_available": true
+  },
+  {
+    "name": "Chin Chin",
+    "description": "Crunchy bite-sized Nigerian pastry snacks with a lightly sweet buttery flavor.",
+    "price": 1200,
+    "is_available": true
+  },
+  {
+    "name": "Nigerian Pancakes",
+    "description": "Soft golden pancakes served with honey and fresh fruit.",
+    "price": 2500,
+    "is_available": true
+  },
+  {
+    "name": "Akamu Pap",
+    "description": "Smooth fermented maize pap served warm with a lightly sweet traditional flavor.",
+    "price": 1500,
+    "is_available": true
+  },
+  {
+    "name": "Yoghurt Parfait",
+    "description": "Creamy yoghurt layered with granola, fresh fruit and a drizzle of honey.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Fruit Salad",
+    "description": "Fresh seasonal fruits tossed together and served chilled.",
+    "price": 2500,
+    "is_available": true
+  },
+  {
+    "name": "Chapman",
+    "description": "Refreshing Nigerian cocktail-style soft drink made with grenadine, citrus and bitters.",
+    "price": 2500,
+    "is_available": true
+  },
+  {
+    "name": "Zobo Drink",
+    "description": "Chilled hibiscus drink infused with ginger, pineapple and aromatic spices.",
+    "price": 1500,
+    "is_available": true
+  },
+  {
+    "name": "Ginger Zobo",
+    "description": "Refreshing hibiscus drink with a bright ginger kick and subtle fruit flavor.",
+    "price": 1500,
+    "is_available": true
+  },
+  {
+    "name": "Fresh Pineapple Juice",
+    "description": "Chilled juice made from ripe fresh pineapple with no artificial flavoring.",
+    "price": 2000,
+    "is_available": true
+  },
+  {
+    "name": "Watermelon Juice",
+    "description": "Freshly blended watermelon juice served chilled and naturally sweet.",
+    "price": 2000,
+    "is_available": true
+  },
+  {
+    "name": "Mango Smoothie",
+    "description": "Creamy smoothie blended from ripe mangoes, yoghurt and ice.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Banana Smoothie",
+    "description": "Thick and creamy banana smoothie blended with yoghurt and honey.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Pineapple Ginger Smoothie",
+    "description": "Refreshing blend of pineapple, ginger, yoghurt and ice.",
+    "price": 3000,
+    "is_available": true
+  },
+  {
+    "name": "Bottled Water",
+    "description": "Chilled bottled drinking water.",
+    "price": 800,
+    "is_available": true
+  },
+  {
+    "name": "Malt Drink",
+    "description": "Chilled malt soft drink with a rich caramel flavor.",
+    "price": 1200,
+    "is_available": true
+  },
+  {
+    "name": "Cola Soft Drink",
+    "description": "Chilled carbonated cola soft drink served cold.",
+    "price": 1000,
+    "is_available": true
+  },
+  {
+    "name": "Orange Soft Drink",
+    "description": "Chilled sparkling orange-flavored soft drink.",
+    "price": 1000,
+    "is_available": true
+  }
+]

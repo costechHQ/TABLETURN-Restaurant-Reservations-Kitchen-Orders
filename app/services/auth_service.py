@@ -4,11 +4,10 @@ from sqlmodel import Session, select
 from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest
 from app.core.security import (
-    get_password_hash,
+    hash_password,
     verify_password,
     create_access_token,
 )
-
 
 def register_user(
     session: Session,
@@ -26,7 +25,7 @@ def register_user(
         )
 
     # Hash the password before saving
-    hashed_password = get_password_hash(data.password)
+    hashed_password = hash_password(data.password)
 
     user = User(
         email=data.email,
@@ -66,10 +65,8 @@ def login_user(
 
     # Create JWT
     access_token = create_access_token(
-        data={
-            "sub": str(user.id),
-            "role": user.role.value,
-        }
+        user_id=user.id,
+        role=user.role.value,
     )
 
     return access_token
