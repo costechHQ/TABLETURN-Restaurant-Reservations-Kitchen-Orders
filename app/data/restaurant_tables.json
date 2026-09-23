@@ -1,0 +1,22 @@
+[
+  {
+    "code": "T01",
+    "capacity": 2
+  },
+  {
+    "code": "T02",
+    "capacity": 4
+  },
+  {
+    "code": "T03",
+    "capacity": 4
+  },
+  {
+    "code": "T04",
+    "capacity": 6
+  },
+  {
+    "code": "T05",
+    "capacity": 8
+  }
+]

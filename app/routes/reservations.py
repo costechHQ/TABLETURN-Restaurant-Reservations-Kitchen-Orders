@@ -5,12 +5,23 @@ from sqlmodel import Session
 
 from app.services.reservation_service import (
     create_reservation as create_reservation_service,
+    get_reservations,
+    check_availability,
+    update_reservation as update_reservation_service,
+    cancel_reservation as cancel_reservation_service,
 )
 
 from app.core.deps import get_current_user
 from app.db.session import get_session
 from app.models.user import User, UserRole
-from app.schemas.reservations import ReservationCreate, ReservationResponse
+from app.schemas.reservations import (
+    AvailabilityQuery,
+    ReservationCreate, 
+    ReservationResponse,
+    ReservationUpdate,
+)
+
+from app.models.table import RestaurantTable
 
 
 
@@ -87,4 +98,67 @@ def create_reservation(
         session=session,
         data=data,
         diner_id=current_user.id,
+    )
+
+@router.get(
+    "",
+    response_model=list[ReservationResponse],
+)
+
+def get_all_reservations(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+
+    
+    return get_reservations(
+        session=session,
+        user=current_user,
+    )
+
+@router.get(
+    "/availabilty",
+    response_model=list[RestaurantTable],
+)
+def check_reservation_availability(
+    data: Annotated[AvailabilityQuery, Depends()],
+    session: Annotated[Session, Depends(get_session)],
+):
+
+    return check_availability(
+        session=session,
+        data=data,
+    )
+
+
+@router.put(
+    "/{reservation_id}",
+    response_model=ReservationResponse,
+)
+def update_reservation(
+    reservation_id: int,
+    data: ReservationUpdate,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return update_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
+        data=data,
+        user=current_user,
+    )
+
+@router.delete(
+    "/{reservation_id}",
+    response_model=ReservationResponse,
+)
+def cancel_reservation(
+    reservation_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return cancel_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
+        user=current_user,
     )
