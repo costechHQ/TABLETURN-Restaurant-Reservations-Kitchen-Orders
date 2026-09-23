@@ -6,12 +6,19 @@ from sqlmodel import Session
 from app.services.reservation_service import (
     create_reservation as create_reservation_service,
     get_reservations,
+    check_availability,
 )
 
 from app.core.deps import get_current_user
 from app.db.session import get_session
 from app.models.user import User, UserRole
-from app.schemas.reservations import ReservationCreate, ReservationResponse
+from app.schemas.reservations import (
+    AvailabilityQuery,
+    ReservationCreate, 
+    ReservationResponse,
+)
+
+from app.models.table import RestaurantTable
 
 
 
@@ -104,4 +111,18 @@ def get_all_reservations(
     return get_reservations(
         session=session,
         user=current_user,
+    )
+
+@router.get(
+    "/availabilty",
+    response_model=list[RestaurantTable],
+)
+def check_reservation_availability(
+    data: Annotated[AvailabilityQuery, Depends()],
+    session: Annotated[Session, Depends(get_session)],
+):
+
+    return check_availability(
+        session=session,
+        data=data,
     )

@@ -8,7 +8,11 @@ from app.models.reservation import (
     ReservationStatus,
 )
 from app.models.table import RestaurantTable
-from app.schemas.reservations import ReservationCreate
+from app.schemas.reservations import (
+    AvailabilityQuery,
+    ReservationCreate,
+    ReservationUpdate
+)
 from app.models.user import User, UserRole
 
 
@@ -111,3 +115,51 @@ def get_reservations(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="You do not have access to reservations",
     )
+
+
+def check_availability(
+        session: Session,
+        data: AvailabilityQuery,
+) -> list[RestaurantTable]:
+
+    tables = session.exec(
+        select(RestaurantTable).where(
+            RestaurantTable.capacity >= data.party_size
+        )
+    ).all()
+
+    available_tables = []
+
+    for table in tables:
+        reservations = session.exec(
+            select(Reservation).where(
+                Reservation.table_id == table.id,
+                Reservation.status != ReservationStatus.CANCELLED,
+            )
+        ).all()
+
+        has_overlap = any(
+            data.start_at < reservation.end_at
+            and data.end_at > reservation.start_at
+            for reservation in reservations
+        )
+
+        if not has_overlap:
+            available_tables.append(table)
+
+    return available_tables
+
+
+def update_reservation(
+        session: Session,
+        reservation_id: int,
+        data: ReservationUpdate,
+        user: User,
+) -> Reservation:
+    reservation = session.get(Reservation, reservation_id)
+
+    if not reservation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reservation not found",
+        )

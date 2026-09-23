@@ -29,3 +29,9 @@ class AvailabilityQuery(BaseModel):
     party_size: int = Field(gt=0)
     start_at: datetime
     end_at: datetime
+
+class ReservationUpdate(BaseModel):
+    table_id: int
+    party_size: int = Field(gt=0)
+    start_at: datetime
+    end_at: datetime

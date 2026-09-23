@@ -1,0 +1,32 @@
+[
+  {
+    "id": 4,
+    "email": "diner2@example.com",
+    "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$nmgaRmI5OZiEnSGhvCSpoA$oIbilvfhEY+05B8jRXtCVkq2f/d9da1s1rmlTFAE+VY",
+    "role": "diner"
+  },
+  {
+    "id": 5,
+    "email": "diner3@example.com",
+    "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$nmgaRmI5OZiEnSGhvCSpoA$oIbilvfhEY+05B8jRXtCVkq2f/d9da1s1rmlTFAE+VY",
+    "role": "diner"
+  },
+  {
+    "id": 6,
+    "email": "diner4@example.com",
+    "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$nmgaRmI5OZiEnSGhvCSpoA$oIbilvfhEY+05B8jRXtCVkq2f/d9da1s1rmlTFAE+VY",
+    "role": "diner"
+  },
+  {
+    "id": 7,
+    "email": "diner5@example.com",
+    "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$nmgaRmI5OZiEnSGhvCSpoA$oIbilvfhEY+05B8jRXtCVkq2f/d9da1s1rmlTFAE+VY",
+    "role": "diner"
+  },
+  {
+    "id": 8,
+    "email": "diner6@example.com",
+    "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$nmgaRmI5OZiEnSGhvCSpoA$oIbilvfhEY+05B8jRXtCVkq2f/d9da1s1rmlTFAE+VY",
+    "role": "diner"
+  }
+]
