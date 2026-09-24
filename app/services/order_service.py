@@ -71,16 +71,16 @@ def add_order_item(
 
     # Save current menu price on the order item
     order_item = OrderItem(
-        order_id=order_id,
-        menu_item_id=data.menu_item_id,
-        qty=data.qty,
-        unit_price=menu_item.price,
-        notes=data.notes,
-    )
+    order_id=order.id,
+    menu_item_id=data.menu_item_id,
+    qty=data.qty,
+    unit_price=menu_item.price,
+    total_amount=data.qty * menu_item.price,
+    notes=data.notes,
+)
 
     session.add(order_item)
-
-    
+    order.total_amount += menu_item.price * data.qty
     order.updated_at = datetime.now(timezone.utc)
 
     session.add(order)

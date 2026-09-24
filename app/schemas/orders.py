@@ -42,3 +42,24 @@ class OrderResponse(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class KitchenQueueItemResponse(BaseModel):
+    id: int
+    menu_item_id: int
+    qty: int
+    unit_price: Decimal
+    total_amount: Decimal
+    notes: str | None
+    status: OrderItemStatus
+
+
+class KitchenQueueResponse(BaseModel):
+    id: int
+    table_id: int
+    waiter_id: int
+    status: OrderStatus
+    total_amount: Decimal
+    created_at: datetime
+    updated_at: datetime
+    ordered_items: list[KitchenQueueItemResponse]
