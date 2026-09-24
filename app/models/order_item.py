@@ -30,6 +30,8 @@ class OrderItem(SQLModel, table=True):
 
     unit_price: Decimal
 
+    total_amount: Decimal
+
     notes: str | None = Field(
         default=None,
         max_length=200,

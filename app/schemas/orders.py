@@ -1,7 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from app.models.order import OrderStatus
 from app.models.order_item import OrderItemStatus
+from decimal import Decimal
 
 class OrderCreate(BaseModel):
     table_id: int = Field(gt=0)
@@ -18,9 +19,15 @@ class OrderItemResponse(BaseModel):
     order_id: int
     menu_item_id: int
     qty: int
-    unit_price: float
+    unit_price: Decimal
+    total_amount: Decimal
     notes: str | None
     status: OrderItemStatus
+
+    @computed_field
+    @property
+    def total_price(self) -> Decimal:
+        return self.qty * self.unit_price
 
 
 class OrderResponse(BaseModel):
