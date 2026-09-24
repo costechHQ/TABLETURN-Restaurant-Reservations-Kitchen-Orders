@@ -4,7 +4,7 @@ from app.models.order import OrderStatus
 from app.models.order_item import OrderItemStatus
 
 class OrderCreate(BaseModel):
-    table_id: int
+    table_id: int = Field(gt=0)
 
 
 class OrderItemCreate(BaseModel):

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.db.session import get_session
@@ -10,9 +10,11 @@ from app.schemas.orders import (
     OrderItemResponse,
     OrderStatusUpdate,
 )
+from app.models.order import OrderStatus
 from app.services.order_service import (
     create_order,
     add_order_item,
+    get_orders
 )
 from app.services.kitchen_service import update_order_status
 from app.core.deps import get_current_user, require_role
@@ -81,4 +83,28 @@ def change_order_status(
         session=session,
         order_id=order_id,
         data=data,
+    )
+
+@router.get(
+    "",
+    response_model=list[OrderResponse],
+)
+def list_orders(
+    status: OrderStatus | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(
+        require_role(
+            UserRole.WAITER,
+            UserRole.KITCHEN,
+            UserRole.MANAGER,
+        )
+    ),
+):
+    return get_orders(
+        session=session,
+        status=status,
+        limit=limit,
+        offset=offset,
     )

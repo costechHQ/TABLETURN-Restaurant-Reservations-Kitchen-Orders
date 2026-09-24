@@ -77,7 +77,6 @@ def create_reservation(
                 detail="Table is already reserved during this time",
             )
 
-    # Create reservation
     reservation = Reservation(
         table_id=data.table_id,
         diner_id=diner_id,
@@ -115,6 +114,7 @@ def get_reservations(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="You do not have access to reservations",
     )
+
 
 
 def check_availability(

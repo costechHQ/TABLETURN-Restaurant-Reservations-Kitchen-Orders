@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
@@ -54,7 +54,6 @@ def add_order_item(
             detail="Order not found",
         )
 
-    
     menu_item = session.get(MenuItem, data.menu_item_id)
 
     if not menu_item:
@@ -89,3 +88,22 @@ def add_order_item(
     session.refresh(order_item)
 
     return order_item
+
+def get_orders(
+    session: Session,
+    status: OrderStatus | None = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[Order]:
+    statement = select(Order)
+
+    if status is not None:
+        statement = statement.where(Order.status == status)
+
+    statement = (
+        statement
+        .offset(offset)
+        .limit(limit)
+    )
+
+    return session.exec(statement).all()

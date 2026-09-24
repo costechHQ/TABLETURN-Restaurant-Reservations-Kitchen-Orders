@@ -18,5 +18,17 @@
   {
     "code": "T05",
     "capacity": 8
+  },
+  {
+    "code": "T06",
+    "capacity": 3
+  },
+  {
+    "code": "T07",
+    "capacity": 7
+  },
+  {
+    "code": "T08",
+    "capacity": 4
   }
 ]
