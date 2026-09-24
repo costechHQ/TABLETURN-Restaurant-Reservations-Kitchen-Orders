@@ -16,7 +16,6 @@ def create_order(
     waiter_id: int,
 ) -> Order:
 
-    
     table = session.get(RestaurantTable, data.table_id)
 
     if not table:
