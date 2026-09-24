@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.order import Order, OrderStatus
 from app.schemas.orders import OrderStatusUpdate
@@ -50,3 +50,13 @@ def update_order_status(
     session.refresh(order)
 
     return order
+
+
+def get_kitchen_queue(session: Session) -> list[Order]:
+    statement = select(Order).where(
+        Order.status.in_(
+            [OrderStatus.PLACED, OrderStatus.PREPARING]
+        )
+    )
+
+    return session.exec(statement).all()
