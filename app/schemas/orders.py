@@ -3,17 +3,17 @@ from pydantic import BaseModel, Field
 from app.models.order import OrderStatus
 from app.models.order_item import OrderItemStatus
 
-class orderCreate(BaseModel):
+class OrderCreate(BaseModel):
     table_id: int
 
 
-class orderItemCreate(BaseModel):
+class OrderItemCreate(BaseModel):
     menu_item_id: int
     qty: int = Field(gt=0)
     notes: str | None = Field(default=None, max_length=200)
 
 
-class orderItemResponse(BaseModel):
+class OrderItemResponse(BaseModel):
     id: int
     order_id: int
     menu_item_id: int
@@ -30,6 +30,7 @@ class OrderResponse(BaseModel):
     status: OrderStatus
     created_at: datetime
     updated_at: datetime
+    ordered_items: list[OrderItemResponse]
 
 
 class OrderStatusUpdate(BaseModel):

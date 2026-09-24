@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
-from app.db.database import get_session
+from app.db.session import get_session
 from app.models.user import User, UserRole
-from app.schemas.order import (
+from app.schemas.orders import (
     OrderCreate,
     OrderResponse,
     OrderItemCreate,

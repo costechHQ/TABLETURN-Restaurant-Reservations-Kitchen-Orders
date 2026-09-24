@@ -13,7 +13,7 @@ def register_user(
     session: Session,
     data: RegisterRequest,
 ) -> User:
-    # Check if email already exists
+    
     existing_user = session.exec(
         select(User).where(User.email == data.email)
     ).first()
@@ -24,7 +24,6 @@ def register_user(
             detail="Email already registered",
         )
 
-    # Hash the password before saving
     hashed_password = hash_password(data.password)
 
     user = User(
@@ -44,26 +43,23 @@ def login_user(
     session: Session,
     data: LoginRequest,
 ) -> str:
-    # Find user
+    
     user = session.exec(
         select(User).where(User.email == data.email)
     ).first()
 
-    # User does not exist
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
 
-    # Check password
     if not verify_password(data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
 
-    # Create JWT
     access_token = create_access_token(
         user_id=user.id,
         role=user.role.value,

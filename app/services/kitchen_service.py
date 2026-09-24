@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlmodel import Session
 
 from app.models.order import Order, OrderStatus
-from app.schemas.order import OrderStatusUpdate
+from app.schemas.orders import OrderStatusUpdate
 
 
 VALID_TRANSITIONS = {

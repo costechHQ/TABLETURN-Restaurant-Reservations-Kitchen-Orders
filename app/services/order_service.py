@@ -6,8 +6,8 @@ from sqlmodel import Session
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
 from app.models.menu_item import MenuItem
-from app.models.restaurant_table import RestaurantTable
-from app.schemas.order import OrderCreate, OrderItemCreate
+from app.models.table import RestaurantTable
+from app.schemas.orders import OrderCreate, OrderItemCreate
 
 
 def create_order(
@@ -16,7 +16,7 @@ def create_order(
     waiter_id: int,
 ) -> Order:
 
-    # Check table exists
+    
     table = session.get(RestaurantTable, data.table_id)
 
     if not table:
@@ -46,7 +46,7 @@ def add_order_item(
     data: OrderItemCreate,
 ) -> OrderItem:
 
-    # Find order
+    
     order = session.get(Order, order_id)
 
     if not order:
@@ -55,7 +55,7 @@ def add_order_item(
             detail="Order not found",
         )
 
-    # Find menu item
+    
     menu_item = session.get(MenuItem, data.menu_item_id)
 
     if not menu_item:
@@ -64,7 +64,7 @@ def add_order_item(
             detail="Menu item not found",
         )
 
-    # Check availability
+    
     if not menu_item.is_available:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -82,7 +82,7 @@ def add_order_item(
 
     session.add(order_item)
 
-    # Update order timestamp
+    
     order.updated_at = datetime.now(timezone.utc)
 
     session.add(order)

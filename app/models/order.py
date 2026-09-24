@@ -21,7 +21,7 @@ class Order(SQLModel, table=True):
         index=True,
     )
 
-    wait_id: int = Field(
+    waiter_id: int = Field(
         foreign_key="users.id",
         index=True,
     )
@@ -35,7 +35,7 @@ class Order(SQLModel, table=True):
         default=Decimal("0.00"),
     )
 
-    create_at: datetime = Field(
+    created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 

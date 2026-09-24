@@ -44,6 +44,7 @@ def get_current_user(
 
 
 def require_role(*allowed_roles: str) -> Callable:
+    
     def role_checker(
         current_user: Annotated[User, Depends(get_current_user)],
     ) -> User:
