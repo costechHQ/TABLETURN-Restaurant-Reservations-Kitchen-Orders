@@ -7,7 +7,6 @@ from app.models.payment import PaymentStatus
 
 
 class PaymentCreate(BaseModel):
-    amount: Decimal = Field(gt=0)
     method: str
 
 
@@ -18,8 +17,3 @@ class PaymentResponse(BaseModel):
     method: str
     recorded_at: datetime
     status: PaymentStatus
-
-
-
-
-
