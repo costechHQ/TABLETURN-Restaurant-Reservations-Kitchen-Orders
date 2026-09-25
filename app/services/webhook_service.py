@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.models.order import Order, OrderStatus
 from app.models.processed_event import ProcessedEvent
 from app.models.payment import Payment, PaymentStatus
-
 
 
 def process_payment_webhook(
@@ -13,6 +13,7 @@ def process_payment_webhook(
     reference: str,
     payment_status: str,
 ) -> None:
+
     existing_event = session.exec(
         select(ProcessedEvent).where(
             ProcessedEvent.event_id == event_id
@@ -40,8 +41,16 @@ def process_payment_webhook(
             order.status = OrderStatus.PAID
             session.add(order)
 
-    processed_event = ProcessedEvent(event_id=event_id)
+    processed_event = ProcessedEvent(
+        event_id=event_id,
+        reference=reference,
+    )
 
     session.add(payment)
     session.add(processed_event)
-    session.commit()
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        return

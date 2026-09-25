@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.auth import RegisterRequest, LoginRequest
 from app.core.security import (
     hash_password,
@@ -9,13 +9,16 @@ from app.core.security import (
     create_access_token,
 )
 
+
 def register_user(
     session: Session,
     data: RegisterRequest,
 ) -> User:
-    
+
     existing_user = session.exec(
-        select(User).where(User.email == data.email)
+        select(User).where(
+            User.email == data.email
+        )
     ).first()
 
     if existing_user:
@@ -29,7 +32,7 @@ def register_user(
     user = User(
         email=data.email,
         password_hash=hashed_password,
-        role=data.role,
+        role=UserRole.DINER,
     )
 
     session.add(user)
@@ -43,9 +46,11 @@ def login_user(
     session: Session,
     data: LoginRequest,
 ) -> str:
-    
+
     user = session.exec(
-        select(User).where(User.email == data.email)
+        select(User).where(
+            User.email == data.email
+        )
     ).first()
 
     if not user:
@@ -54,7 +59,10 @@ def login_user(
             detail="Invalid email or password",
         )
 
-    if not verify_password(data.password, user.password_hash):
+    if not verify_password(
+        data.password,
+        user.password_hash,
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

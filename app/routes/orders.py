@@ -129,4 +129,5 @@ def create_order_payment(
         session=session,
         order_id=order_id,
         data=data,
+        recorded_by=current_user.id,
     )
