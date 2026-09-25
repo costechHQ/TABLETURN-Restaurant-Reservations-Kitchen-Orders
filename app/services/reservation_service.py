@@ -139,8 +139,8 @@ def check_availability(
         ).all()
 
         has_overlap = any(
-            data.start_at < reservation.end_at
-            and data.end_at > reservation.start_at
+            data.start < reservation.end_at
+            and data.end > reservation.start_at
             for reservation in reservations
         )
 
