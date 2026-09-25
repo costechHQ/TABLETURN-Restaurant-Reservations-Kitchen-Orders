@@ -283,3 +283,29 @@ def cancel_reservation(
     session.refresh(reservation)
 
     return reservation
+
+def seat_reservation(
+    session: Session,
+    reservation_id: int,
+) -> Reservation:
+    reservation = session.get(Reservation, reservation_id)
+
+    if not reservation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reservation not found",
+        )
+
+    if reservation.status != ReservationStatus.CONFIRMED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only confirmed reservations can be seated",
+        )
+
+    reservation.status = ReservationStatus.SEATED
+
+    session.add(reservation)
+    session.commit()
+    session.refresh(reservation)
+
+    return reservation
