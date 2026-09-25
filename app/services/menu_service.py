@@ -66,6 +66,7 @@ def update_menu_item(
     session.add(menu_item)
     session.commit()
     session.refresh(menu_item)
+    redis_client.delete("menu:list")
 
     return menu_item
 
