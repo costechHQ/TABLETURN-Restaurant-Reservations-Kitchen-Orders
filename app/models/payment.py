@@ -18,11 +18,8 @@ class Payment(SQLModel, table=True):
         primary_key=True
     )
 
-    order_id: int = Field(
-        foreign_key="orders.id",
-        index=True
-    )
-
+    order_id: int = Field(foreign_key="orders.id", index=True)
+    reference: str = Field(unique=True, index=True)
     amount: Decimal
 
     method: str

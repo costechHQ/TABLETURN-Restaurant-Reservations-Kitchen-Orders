@@ -1,8 +1,10 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
+from app.models.order import Order, OrderStatus
 from app.models.processed_event import ProcessedEvent
 from app.models.payment import Payment, PaymentStatus
+
 
 
 def process_payment_webhook(
@@ -11,8 +13,6 @@ def process_payment_webhook(
     reference: str,
     payment_status: str,
 ) -> None:
-
-    # Check if this event was already processed
     existing_event = session.exec(
         select(ProcessedEvent).where(
             ProcessedEvent.event_id == event_id
@@ -20,31 +20,28 @@ def process_payment_webhook(
     ).first()
 
     if existing_event:
-        # Duplicate webhook
         return
 
-    # Find payment using the reference
     payment = session.exec(
         select(Payment).where(
-            Payment.id == int(reference)
+            Payment.reference == reference
         )
     ).first()
 
     if not payment:
-        # Unknown reference.
-        # The brief says this should return 200 and be logged.
         return
 
-    # Update payment
     if payment_status == "success":
         payment.status = PaymentStatus.SUCCESS
 
-    # Record event
-    processed_event = ProcessedEvent(
-        event_id=event_id,
-    )
+        order = session.get(Order, payment.order_id)
 
-    session.add(processed_event)
+        if order:
+            order.status = OrderStatus.PAID
+            session.add(order)
+
+    processed_event = ProcessedEvent(event_id=event_id)
+
     session.add(payment)
-
+    session.add(processed_event)
     session.commit()

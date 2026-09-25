@@ -19,6 +19,9 @@ from app.services.order_service import (
 from app.services.kitchen_service import update_order_status
 from app.core.deps import get_current_user, require_role
 
+from app.schemas.payment import PaymentCreate, PaymentResponse
+from app.services.payment_service import create_payment
+
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"],
@@ -107,4 +110,23 @@ def list_orders(
         status=status,
         limit=limit,
         offset=offset,
+    )
+
+@router.post(
+    "/{order_id}/payments",
+    response_model=PaymentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_order_payment(
+    order_id: int,
+    data: PaymentCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(
+        require_role(UserRole.WAITER)
+    ),
+):
+    return create_payment(
+        session=session,
+        order_id=order_id,
+        data=data,
     )

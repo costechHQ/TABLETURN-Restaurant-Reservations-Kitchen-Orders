@@ -8,6 +8,7 @@ from app.models.order_item import OrderItem
 from app.models.menu_item import MenuItem
 from app.models.table import RestaurantTable
 from app.schemas.orders import OrderCreate, OrderItemCreate
+from app.services.kitchen_service import sync_order_to_kds
 
 
 def create_order(
@@ -86,6 +87,8 @@ def add_order_item(
     session.add(order)
     session.commit()
     session.refresh(order_item)
+
+    sync_order_to_kds(order)
 
     return order_item
 

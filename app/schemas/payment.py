@@ -5,11 +5,9 @@ from pydantic import BaseModel, Field
 
 from app.models.payment import PaymentStatus
 
-
 class PaymentCreate(BaseModel):
-    amount: Decimal = Field(gt=0)
-    method: str
-
+    reference: str = "test-paystack-001"
+    method: str = "online"
 
 class PaymentResponse(BaseModel):
     id: int
@@ -18,8 +16,3 @@ class PaymentResponse(BaseModel):
     method: str
     recorded_at: datetime
     status: PaymentStatus
-
-
-
-
-

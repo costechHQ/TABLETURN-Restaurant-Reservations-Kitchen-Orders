@@ -1,3 +1,8 @@
+import json
+import queue
+import firebase_admin
+from firebase_admin import firestore
+
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
@@ -5,6 +10,7 @@ from sqlmodel import Session, select
 
 from app.models.order import Order, OrderStatus
 from app.schemas.orders import OrderStatusUpdate
+from app.core.firebase import db
 
 
 VALID_TRANSITIONS = {
@@ -49,6 +55,8 @@ def update_order_status(
     session.commit()
     session.refresh(order)
 
+    sync_order_to_kds(order)
+
     return order
 
 
@@ -60,3 +68,42 @@ def get_kitchen_queue(session: Session) -> list[Order]:
     )
 
     return session.exec(statement).all()
+
+def sync_order_to_kds(order: Order) -> None:
+    items = [
+        {
+            "id": item.id,
+            "menu_item_id": item.menu_item_id,
+            "qty": item.qty,
+            "unit_price": str(item.unit_price),
+            "notes": item.notes,
+            "status": item.status.value,
+        }
+        for item in order.ordered_items
+    ]
+
+    db.collection("kitchen_queue").document(str(order.id)).set({
+        "order_id": order.id,
+        "table_id": order.table_id,
+        "waiter_id": order.waiter_id,
+        "status": order.status.value,
+        "total_amount": str(order.total_amount),
+        "items": items,
+        "updated_at": order.updated_at.isoformat(),
+    })
+    
+def stream_kitchen_events():
+    events = queue.Queue()
+
+    query = db.collection("kitchen_queue")
+
+    def on_snapshot(col_snapshot, changes, read_time):
+        for change in changes:
+            events.put({
+                "type": change.type.name,
+                "data": change.document.to_dict(),
+            })
+
+    watch = query.on_snapshot(on_snapshot)
+
+    return events, watch
