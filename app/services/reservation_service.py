@@ -122,6 +122,12 @@ def check_availability(
         data: AvailabilityQuery,
 ) -> list[RestaurantTable]:
 
+    if data.end <= data.start:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="End time must be after start time",
+    )
+
     tables = session.exec(
         select(RestaurantTable).where(
             RestaurantTable.capacity >= data.party_size
@@ -239,19 +245,17 @@ def update_reservation(
 
     return reservation
 
-
 def cancel_reservation(
-        session: Session,
-        reservation_id: int,
-        user: User,
+    session: Session,
+    reservation_id: int,
+    user: User,
 ) -> Reservation:
-
     reservation = session.get(Reservation, reservation_id)
 
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Reservation not found"
+            detail="Reservation not found",
         )
 
     if user.role == UserRole.DINER and reservation.diner_id != user.id:
@@ -260,10 +264,10 @@ def cancel_reservation(
             detail="You can only cancel your own reservations",
         )
 
-    if user.role not in (UserRole.DINER, UserRole.MANAGER):
+    if user.role not in (UserRole.DINER, UserRole.WAITER):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to cancel reservations",
+            detail="Only the reservation owner or a waiter can cancel reservations",
         )
 
     if reservation.status == ReservationStatus.CANCELLED:
@@ -273,6 +277,32 @@ def cancel_reservation(
         )
 
     reservation.status = ReservationStatus.CANCELLED
+
+    session.add(reservation)
+    session.commit()
+    session.refresh(reservation)
+
+    return reservation
+
+def seat_reservation(
+    session: Session,
+    reservation_id: int,
+) -> Reservation:
+    reservation = session.get(Reservation, reservation_id)
+
+    if not reservation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reservation not found",
+        )
+
+    if reservation.status != ReservationStatus.CONFIRMED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only confirmed reservations can be seated",
+        )
+
+    reservation.status = ReservationStatus.SEATED
 
     session.add(reservation)
     session.commit()

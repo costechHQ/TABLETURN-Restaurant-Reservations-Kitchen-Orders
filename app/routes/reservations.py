@@ -3,26 +3,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
-from app.services.reservation_service import (
-    create_reservation as create_reservation_service,
-    get_reservations,
-    check_availability,
-    update_reservation as update_reservation_service,
-    cancel_reservation as cancel_reservation_service,
-)
-
 from app.core.deps import get_current_user
 from app.db.session import get_session
 from app.models.user import User, UserRole
-from app.schemas.reservations import (
-    AvailabilityQuery,
-    ReservationCreate, 
-    ReservationResponse,
-    ReservationUpdate,
+from app.schemas.reservations import ReservationCreate, ReservationResponse
+from app.services.reservation_service import (
+    cancel_reservation as cancel_reservation_service,
+    create_reservation as create_reservation_service,
+    seat_reservation as seat_reservation_service,
 )
-
-from app.models.table import RestaurantTable
-
 
 
 router = APIRouter(
@@ -30,12 +19,12 @@ router = APIRouter(
     tags=["Reservations"],
 )
 
+
 @router.post(
     "",
     response_model=ReservationResponse,
     status_code=status.HTTP_201_CREATED,
 )
-
 def create_reservation(
     data: ReservationCreate,
     session: Annotated[Session, Depends(get_session)],
@@ -44,55 +33,8 @@ def create_reservation(
     if current_user.role != UserRole.DINER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only diners can create reservations"
+            detail="Only diners can create reservations",
         )
-
-    # if data.start_at >= data.end_at:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="End time must be after start time",
-    #     )
-
-    # table = session.get(RestaurantTable, data.table_id)
-
-    # if table is None:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_404_NOT_FOUND,
-    #         detail="Table not found"
-    #     )
-
-    # if data.party_size > table.capacity:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="Party size exceeds table capacity",
-    #     )
-
-    # overlapping_reservation = session.exec(
-    #     select(Reservation).where(
-    #         Reservation.table_id == data.table_id,
-    #         Reservation.status != "cancelled",
-    #         Reservation.start_at < data.end_at,
-    #         Reservation.end_at > data.start_at,
-    #     )
-    # ).first()
-
-    # if overlapping_reservation:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_409_CONFLICT,
-    #         detail="Table is already reserved for this time",
-    #     )
-
-    # reservation = Reservation(
-    #     table_id=data.table_id,
-    #     diner_id=current_user.id,
-    #     party_size=data.party_size,
-    #     start_at=data.start_at,
-    #     end_at=data.end_at,
-    # )
-
-    # session.add(reservation)
-    # session.commit()
-    # session.refresh(reservation)
 
     return create_reservation_service(
         session=session,
@@ -100,65 +42,46 @@ def create_reservation(
         diner_id=current_user.id,
     )
 
-@router.get(
-    "",
-    response_model=list[ReservationResponse],
-)
 
-def get_all_reservations(
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-
-    
-    return get_reservations(
-        session=session,
-        user=current_user,
-    )
-
-@router.get(
-    "/availabilty",
-    response_model=list[RestaurantTable],
-)
-def check_reservation_availability(
-    data: Annotated[AvailabilityQuery, Depends()],
-    session: Annotated[Session, Depends(get_session)],
-):
-
-    return check_availability(
-        session=session,
-        data=data,
-    )
-
-
-@router.put(
-    "/{reservation_id}",
+@router.post(
+    "/{reservation_id}/cancel",
     response_model=ReservationResponse,
-)
-def update_reservation(
-    reservation_id: int,
-    data: ReservationUpdate,
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return update_reservation_service(
-        session=session,
-        reservation_id=reservation_id,
-        data=data,
-        user=current_user,
-    )
-
-@router.delete(
-    "/{reservation_id}",
-    response_model=ReservationResponse,
+    status_code=status.HTTP_200_OK,
 )
 def cancel_reservation(
     reservation_id: int,
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    if current_user.role not in (UserRole.DINER, UserRole.WAITER):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the reservation owner or a waiter can cancel reservations",
+        )
+
     return cancel_reservation_service(
         session=session,
         reservation_id=reservation_id,
         user=current_user,
+    )
+
+@router.post(
+    "/{reservation_id}/seat",
+    response_model=ReservationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def seat_reservation(
+    reservation_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.role != UserRole.WAITER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only waiters can seat reservations",
+        )
+
+    return seat_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
     )
