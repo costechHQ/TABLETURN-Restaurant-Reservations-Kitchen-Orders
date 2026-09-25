@@ -10,6 +10,7 @@ from app.schemas.reservations import ReservationCreate, ReservationResponse
 from app.services.reservation_service import (
     cancel_reservation as cancel_reservation_service,
     create_reservation as create_reservation_service,
+    seat_reservation as seat_reservation_service,
 )
 
 
@@ -62,4 +63,25 @@ def cancel_reservation(
         session=session,
         reservation_id=reservation_id,
         user=current_user,
+    )
+
+@router.post(
+    "/{reservation_id}/seat",
+    response_model=ReservationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def seat_reservation(
+    reservation_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.role != UserRole.WAITER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only waiters can seat reservations",
+        )
+
+    return seat_reservation_service(
+        session=session,
+        reservation_id=reservation_id,
     )
