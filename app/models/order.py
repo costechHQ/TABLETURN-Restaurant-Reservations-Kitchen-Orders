@@ -1,20 +1,26 @@
 from datetime import datetime, timezone
-from enum import Enum
-from sqlmodel import Field, Relationship, SQLModel
+from enum import Enum as PyEnum
 from decimal import Decimal
 
+from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, Enum as SAEnum
 
-class OrderStatus(str, Enum):
+
+class OrderStatus(str, PyEnum):
     PLACED = "placed"
     PREPARING = "preparing"
     READY = "ready"
     SERVED = "served"
+    PAID = "paid"
 
 
 class Order(SQLModel, table=True):
     __tablename__ = "orders"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int | None = Field(
+        default=None,
+        primary_key=True,
+    )
 
     table_id: int = Field(
         foreign_key="restaurant_tables.id",
@@ -28,7 +34,16 @@ class Order(SQLModel, table=True):
 
     status: OrderStatus = Field(
         default=OrderStatus.PLACED,
-        index=True,
+        sa_column=Column(
+            SAEnum(
+                OrderStatus,
+                values_callable=lambda enum_class: [
+                    member.value for member in enum_class
+                ],
+                name="orderstatus",
+            ),
+            index=True,
+        ),
     )
 
     total_amount: Decimal = Field(
@@ -46,4 +61,3 @@ class Order(SQLModel, table=True):
     ordered_items: list["OrderItem"] = Relationship(
         back_populates="order"
     )
-    
