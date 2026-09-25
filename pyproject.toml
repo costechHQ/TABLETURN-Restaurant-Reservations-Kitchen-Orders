@@ -13,5 +13,6 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.14.0",
     "redis>=8.1.0",
+    "slowapi>=0.1.10",
     "sqlmodel>=0.0.42",
 ]
