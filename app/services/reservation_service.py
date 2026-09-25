@@ -245,19 +245,17 @@ def update_reservation(
 
     return reservation
 
-
 def cancel_reservation(
-        session: Session,
-        reservation_id: int,
-        user: User,
+    session: Session,
+    reservation_id: int,
+    user: User,
 ) -> Reservation:
-
     reservation = session.get(Reservation, reservation_id)
 
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Reservation not found"
+            detail="Reservation not found",
         )
 
     if user.role == UserRole.DINER and reservation.diner_id != user.id:
@@ -266,10 +264,10 @@ def cancel_reservation(
             detail="You can only cancel your own reservations",
         )
 
-    if user.role not in (UserRole.DINER, UserRole.MANAGER):
+    if user.role not in (UserRole.DINER, UserRole.WAITER):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to cancel reservations",
+            detail="Only the reservation owner or a waiter can cancel reservations",
         )
 
     if reservation.status == ReservationStatus.CANCELLED:
