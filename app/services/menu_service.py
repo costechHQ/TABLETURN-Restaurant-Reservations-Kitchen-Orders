@@ -1,3 +1,5 @@
+import json
+from app.core.redis import redis_client
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
@@ -30,6 +32,7 @@ def create_menu_item(
     session.add(menu_item)
     session.commit()
     session.refresh(menu_item)
+    redis_client.delete("menu:list")
 
     return menu_item
 
@@ -71,8 +74,21 @@ def get_menu(
     session: Session,
 ) -> list[MenuItem]:
 
-    return session.exec(
+    cached_menu = redis_client.get("menu:list")
+
+    if cached_menu:
+        return [MenuItem.model_validate(item) for item in json.loads(cached_menu)]
+
+    menu = session.exec(
         select(MenuItem)
         .where(MenuItem.is_available == True)
         .order_by(MenuItem.name)
     ).all()
+
+    redis_client.set(
+        "menu:list",
+        json.dumps([item.model_dump(mode="json") for item in menu]),
+        ex=300,
+    )
+
+    return menu
