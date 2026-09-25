@@ -122,6 +122,12 @@ def check_availability(
         data: AvailabilityQuery,
 ) -> list[RestaurantTable]:
 
+    if data.end <= data.start:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="End time must be after start time",
+    )
+
     tables = session.exec(
         select(RestaurantTable).where(
             RestaurantTable.capacity >= data.party_size
