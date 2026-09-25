@@ -1,230 +1,289 @@
 [![wakatime](https://wakatime.com/badge/user/cf5dfb0e-2b79-4a12-bcfd-ffd79a22a44f/project/2b4c39e6-27ea-4230-bcae-1a050ba2fbdf.svg)](https://wakatime.com/badge/user/cf5dfb0e-2b79-4a12-bcfd-ffd79a22a44f/project/2b4c39e6-27ea-4230-bcae-1a050ba2fbdf)
 
+# TableTurn — Restaurant Reservations & Kitchen Display System
 
-# TableTurn
+A backend system for managing restaurant table reservations, orders, kitchen workflows, payments, and real-time kitchen updates.
 
-**Restaurant Reservations, Orders & Kitchen Display System**
-
-TableTurn is a backend system for managing restaurant reservations, table availability, food orders, kitchen operations, payments, and daily sales reporting.
-
-The system is designed around the workflow of a real restaurant:
-
-**Customer → Reservation → Table → Order → Kitchen → Payment → Report**
+TableTurn is built around two operational problems that become especially difficult during busy restaurant service: **preventing table double-bookings under concurrent requests** and **keeping kitchen orders organized and traceable from placement to service**.
 
 ---
 
-## 1. What is TableTurn?
+## Problem Statement
 
-TableTurn provides a centralized backend for restaurant operations.
+Busy restaurants face two major operational problems during peak periods such as the Friday rush.
 
-Instead of managing reservations, orders, kitchen tickets, and payments separately, TableTurn connects these processes into one system.
+### 1. Double-Booking Restaurant Tables
 
-### For diners
+Restaurants have a limited number of tables, and multiple diners may attempt to reserve the same table for overlapping time periods.
 
-Diners can:
+A simple availability check is not enough. If two diners choose the same table at nearly the same time, both requests could potentially see the table as available and create conflicting reservations.
 
-* Create an account
-* Log in securely
-* Check available tables
-* Make reservations
-* Cancel their own reservations
+TableTurn solves this using **exact time-overlap checking** with half-open time windows:
 
-### For waiters
+```text
+[start, end)
+```
 
-Waiters can:
+Two reservations overlap when:
 
-* Manage customer seating
-* Create orders
-* Add items to orders
-* Update order status where permitted
-* Process payments
-* View restaurant orders
+```text
+new.start < existing.end
+AND
+new.end > existing.start
+```
 
-### For kitchen staff
+This means two bookings may touch but cannot overlap.
 
-Kitchen staff can:
+For example:
 
-* View the kitchen order queue
-* Receive new orders
-* Track order preparation
-* Update kitchen order status
-* Receive live order updates through Server-Sent Events (SSE)
+```text
+Reservation A: 17:00 ───── 18:00
+Reservation B:                 18:00 ───── 19:00
+```
 
-### For managers
+These reservations are allowed because the first reservation ends exactly when the second begins.
 
-Managers can:
-
-* Create restaurant tables
-* Manage menu items
-* View daily turnover reports
-* Access staff-level order information
-
-### For the restaurant system
-
-TableTurn also handles:
-
-* Secure authentication
-* Role-based authorization
-* Reservation conflict prevention
-* Redis caching
-* Payment webhooks
-* Webhook idempotency
-* Firestore-powered kitchen events
-* Rate limiting
-* Request logging
-* Background processing
-* Database migrations
+The overlap check is performed inside a transaction while the table's reservations are locked. This prevents two diners attempting to reserve the same table and time slot concurrently from both successfully creating a booking.
 
 ---
 
-# 2. Main Features
+### 2. Lost or Poorly Tracked Kitchen Orders
+
+During a busy service, paper kitchen tickets can be lost, delayed, or difficult to track.
+
+Waiters and kitchen staff may not have a shared view of whether an order is new, being prepared, or ready to serve.
+
+TableTurn turns every order into a structured **kitchen ticket** with a controlled state machine:
+
+```text
+NEW → PREPARING → READY → SERVED
+```
+
+Kitchen staff can update the ticket as the order progresses.
+
+Invalid state transitions are rejected with a `409 Conflict` response instead of allowing an order to jump between arbitrary states.
+
+---
+
+## Proposed Solution
+
+TableTurn provides a centralized backend that connects restaurant reservations and kitchen operations.
+
+The system:
+
+* Prevents overlapping reservations for the same table.
+* Uses half-open time intervals for precise reservation boundaries.
+* Protects reservation creation against concurrent booking attempts.
+* Manages restaurant tables and their capacities.
+* Allows authorized users to create and manage reservations.
+* Converts restaurant orders into structured kitchen tickets.
+* Enforces a controlled kitchen order state machine.
+* Provides real-time kitchen updates through Server-Sent Events (SSE).
+* Supports menu management and order pricing.
+* Records payments and processes payment webhook events.
+* Uses role-based access control for different restaurant users.
+* Provides reporting capabilities for restaurant management.
+
+---
+
+# Core Features
 
 ## Authentication & Authorization
 
-Users authenticate using email and password.
+TableTurn uses JWT-based authentication and role-based access control.
 
-Passwords are securely hashed using **Argon2**, while authenticated requests use **JWT access tokens**.
+Supported roles include:
 
-The system has four roles:
+| Role      | Responsibility                                            |
+| --------- | --------------------------------------------------------- |
+| `DINER`   | Make and manage personal reservations                     |
+| `WAITER`  | Create restaurant orders and manage waiter operations     |
+| `KITCHEN` | Process kitchen orders and update ticket status           |
+| `MANAGER` | Manage restaurant resources and administrative operations |
 
-| Role    | Purpose                                         |
-| ------- | ----------------------------------------------- |
-| Diner   | Makes and manages personal reservations         |
-| Waiter  | Handles reservations, orders and payments       |
-| Kitchen | Handles food preparation and kitchen operations |
-| Manager | Manages tables, menu and reports                |
-
-Access to protected endpoints is controlled using role-based authorization.
+Protected endpoints verify both authentication and the user's assigned role.
 
 ---
 
-## Restaurant Tables
+## Table Management
 
-Managers can create restaurant tables with:
+Restaurant tables contain:
 
+* Table ID
 * Table code
-* Capacity
+* Seating capacity
 
-Diners can check which tables are available for a particular party size and time range.
+Tables are used as the foundation for the reservation system.
 
-Table availability takes existing reservations into account.
+The reservation service checks the table's capacity before accepting a booking.
+
+Example:
+
+```json
+{
+  "code": "T01",
+  "capacity": 4
+}
+```
 
 ---
 
-## Reservations
+## Reservation Management
 
-The reservation system prevents overlapping bookings.
-
-A reservation contains:
+Reservations contain:
 
 * Table
 * Diner
 * Party size
 * Start time
 * End time
-* Status
+* Reservation status
 
-Reservation statuses include:
-
-* `confirmed`
-* `seated`
-* `cancelled`
-
-The system uses the half-open time interval rule:
+Supported reservation states include:
 
 ```text
-[start, end)
+CONFIRMED
+SEATED
+CANCELLED
 ```
 
-This means a reservation ending at exactly the time another reservation starts does not conflict with the second reservation.
+### Exact Overlap Detection
+
+TableTurn uses the following rule:
+
+```text
+new.start < existing.end
+AND
+new.end > existing.start
+```
+
+This correctly handles adjacent bookings while preventing actual overlaps.
+
+### Concurrency Protection
+
+Reservation creation is performed transactionally with the relevant table reservations locked.
+
+The goal is to prevent this race condition:
+
+```text
+Diner A ── checks table ── available
+                         \
+                          creates reservation
+
+Diner B ── checks table ── available
+                         \
+                          creates reservation
+```
+
+Both requests must not be allowed to win for the same overlapping slot.
+
+---
+
+# Order Management
+
+Waiters can create orders for restaurant tables and add menu items to those orders.
+
+Each order contains its associated ordered items and tracks the total amount.
+
+Order items contain:
+
+* Menu item
+* Quantity
+* Unit price
+* Notes
+* Preparation status
+
+The menu item's price is captured as the order item's `unit_price`, creating a price snapshot for the transaction.
+
+This is important because a future menu price change should not alter the price of an item that was already ordered.
+
+---
+
+# Kitchen Display System
+
+Every order becomes a kitchen ticket.
+
+The kitchen workflow is:
+
+```text
+NEW
+ ↓
+PREPARING
+ ↓
+READY
+ ↓
+SERVED
+```
+
+The state machine prevents invalid transitions.
 
 For example:
 
 ```text
-Reservation A: 12:00 → 13:00
-Reservation B: 13:00 → 14:00
+NEW → PREPARING       ✓
+PREPARING → READY     ✓
+READY → SERVED        ✓
+NEW → READY           ✗
+SERVED → PREPARING    ✗
 ```
 
-These reservations can coexist.
-
----
-
-# 3. Orders & Kitchen Operations
-
-Waiters create orders for restaurant tables and add menu items to those orders.
-
-Each order contains:
-
-* Restaurant table
-* Waiter
-* Order status
-* Total amount
-* Ordered items
-* Creation and update timestamps
-
-Order statuses are:
+Invalid transitions return:
 
 ```text
-PLACED
-   ↓
-PREPARING
-   ↓
-READY
-   ↓
-SERVED
-   ↓
-PAID
+409 Conflict
 ```
 
-The system validates status transitions so that orders cannot arbitrarily move between invalid states.
+This keeps the kitchen workflow predictable and prevents inconsistent order states.
 
 ---
 
-## Kitchen Display System
+# Real-Time Kitchen Updates
 
-TableTurn includes a live Kitchen Display System (KDS).
+TableTurn provides a live kitchen feed using **Server-Sent Events (SSE)**.
 
-When an order is created or its status changes, the kitchen can receive the update without manually refreshing the page.
+Kitchen clients can maintain a connection to the server and receive updates when relevant order activity occurs.
 
-Firestore stores the live kitchen queue data, while **Server-Sent Events (SSE)** provide the live stream to connected kitchen and waiter clients.
+This avoids requiring kitchen staff to repeatedly refresh the page to discover changes.
 
-The intended flow is:
+The main endpoints include:
 
 ```text
-Waiter
-   │
-   │ Create/Update Order
-   ▼
-FastAPI
-   │
-   ▼
-Firestore
-   │
-   ▼
-SSE Stream
-   │
-   ▼
-Kitchen Display
+GET /api/v1/kitchen/queue
+GET /api/v1/kitchen/stream
 ```
 
-This allows kitchen staff to see new tickets and status changes in near real time.
+The queue provides the current kitchen workload, while the stream provides live updates.
 
 ---
 
-# 4. Payments
+# Menu Management
 
-Waiters can create payment records for orders.
+Menu items contain:
 
-Payments contain:
+* Name
+* Description
+* Price
+* Availability
+
+Menu validation prevents invalid values such as non-positive prices and descriptions outside the defined length constraints.
+
+Redis caching is used to reduce unnecessary database reads for menu data, with cache invalidation when relevant menu information changes.
+
+---
+
+# Payments
+
+TableTurn provides payment records associated with restaurant orders.
+
+Payment records track:
 
 * Order
 * Amount
-* Payment reference
 * Payment method
-* Status
-* Timestamp
+* Payment timestamp
+* Payment status
 
-Payment statuses include:
+Supported payment states include:
 
 ```text
 PENDING
@@ -232,171 +291,82 @@ SUCCESS
 FAILED
 ```
 
-The order amount is derived from the order's total amount.
+The system also supports Paystack webhook processing.
+
+Webhook requests are verified using the request's raw body and the Paystack signature before the event is processed.
+
+Processed events are tracked to support webhook idempotency and prevent the same event from being processed repeatedly.
 
 ---
 
-## Payment Webhooks
+# Reporting
 
-TableTurn supports signed payment webhooks.
+The system provides reporting functionality for restaurant management.
 
-The webhook endpoint verifies the request using **HMAC-SHA512** and the configured secret.
+Reports can use successful payment records to calculate restaurant turnover for a specified period.
 
-The raw request body is used when generating the signature.
-
-This protects the webhook endpoint against unauthorized requests.
-
-### Idempotency
-
-Webhook events are processed idempotently.
-
-If the same payment event is received more than once, the system does not process the payment repeatedly.
-
-For example:
-
-```text
-First webhook
-    ↓
-Payment marked successful
-    ↓
-Order marked PAID
-
-Same webhook again
-    ↓
-Already processed
-    ↓
-No duplicate state change
-```
+This provides management with useful financial information without requiring direct access to raw database records.
 
 ---
 
-# 5. Menu Management
+# Architecture
 
-The public menu can be viewed without authentication.
+TableTurn follows a layered backend architecture:
 
-Managers can:
+```text
+Client
+  │
+  ▼
+FastAPI Routes
+  │
+  ▼
+Schemas / Validation
+  │
+  ▼
+Services
+  │
+  ▼
+SQLModel / Database
+  │
+  ▼
+PostgreSQL
+```
 
-* Add menu items
-* Update menu items
-* Control menu availability
+Supporting services include:
 
-Menu responses are cached using **Redis** to reduce repeated database queries.
+```text
+Redis       → caching
+Firestore   → kitchen/live event data
+Paystack    → payment processing
+SSE         → real-time kitchen updates
+```
 
-When a menu item is created or updated, the relevant cache is invalidated so users receive current menu information.
+The application separates HTTP handling from business logic so that complex rules such as reservation conflict detection and kitchen state transitions remain inside service layers.
 
 ---
 
-# 6. Daily Turnover Reports
+# Technology Stack
 
-Managers can request the restaurant's turnover for a specific date.
-
-The report calculates the total value of successful payments recorded during that day.
-
-Example:
-
-```text
-Date: 2026-09-25
-Successful payments:
-₦25,000
-₦18,500
-₦12,000
-
-Total turnover:
-₦55,500
-```
-
----
-
-# 7. API
-
-The API is versioned under:
-
-```text
-/api/v1
-```
-
-### Authentication
-
-```text
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-```
-
-### Tables
-
-```text
-POST /api/v1/tables
-GET  /api/v1/tables/availability
-```
-
-### Reservations
-
-```text
-POST /api/v1/reservations
-POST /api/v1/reservations/{id}/cancel
-POST /api/v1/reservations/{id}/seat
-```
-
-### Orders
-
-```text
-POST /api/v1/orders
-POST /api/v1/orders/{id}/items
-GET  /api/v1/orders
-POST /api/v1/orders/{id}/status
-```
-
-### Payments
-
-```text
-POST /api/v1/orders/{id}/payments
-POST /api/v1/webhooks/payment
-```
-
-### Kitchen
-
-```text
-GET /api/v1/kitchen/queue
-GET /api/v1/kitchen/stream
-```
-
-### Menu
-
-```text
-GET  /api/v1/menu
-POST /api/v1/menu
-PUT  /api/v1/menu/{id}
-```
-
-### Reports
-
-```text
-GET /api/v1/reports/turnover
-```
+| Technology           | Purpose                                      |
+| -------------------- | -------------------------------------------- |
+| Python               | Backend programming language                 |
+| FastAPI              | REST API framework                           |
+| SQLModel             | ORM and data modelling                       |
+| PostgreSQL           | Primary relational database                  |
+| Alembic              | Database migrations                          |
+| Redis                | Caching                                      |
+| Firebase / Firestore | Real-time kitchen data                       |
+| Server-Sent Events   | Live kitchen updates                         |
+| JWT                  | Authentication                               |
+| Argon2               | Password hashing                             |
+| Paystack             | Payment integration                          |
+| Docker               | Containerized development                    |
+| pytest               | Automated testing                            |
+| uv                   | Python dependency and environment management |
 
 ---
 
-# 8. Technology Stack
-
-| Technology | Purpose                      |
-| ---------- | ---------------------------- |
-| Python     | Backend programming language |
-| FastAPI    | REST API framework           |
-| SQLModel   | Database models and ORM      |
-| PostgreSQL | Primary relational database  |
-| Alembic    | Database migrations          |
-| JWT        | Authentication               |
-| Argon2     | Password hashing             |
-| Redis      | Menu caching                 |
-| Firestore  | Live kitchen queue data      |
-| SSE        | Real-time kitchen updates    |
-| Docker     | Local infrastructure         |
-| Pytest     | Automated testing            |
-| SlowAPI    | Rate limiting                |
-
----
-
-# 9. Project Structure
+# Project Structure
 
 ```text
 tableturn/
@@ -405,10 +375,7 @@ tableturn/
 │   ├── core/
 │   │   ├── config.py
 │   │   ├── security.py
-│   │   ├── deps.py
-│   │   ├── firebase.py
-│   │   ├── middleware.py
-│   │   └── rate_limit.py
+│   │   └── deps.py
 │   │
 │   ├── db/
 │   │   ├── database.py
@@ -443,386 +410,375 @@ tableturn/
 │   │   ├── webhook.py
 │   │   └── reports.py
 │   │
-│   ├── services/
-│   │   ├── auth_service.py
-│   │   ├── reservation_service.py
-│   │   ├── menu_service.py
-│   │   ├── order_service.py
-│   │   ├── kitchen_service.py
-│   │   ├── payment_service.py
-│   │   ├── webhook_service.py
-│   │   ├── report_service.py
-│   │   └── background_service.py
-│   │
-│   └── main.py
+│   └── services/
+│       ├── auth_service.py
+│       ├── reservation_service.py
+│       ├── menu_service.py
+│       ├── order_service.py
+│       ├── kitchen_service.py
+│       ├── payment_service.py
+│       ├── webhook_service.py
+│       └── report_service.py
 │
 ├── alembic/
 ├── tests/
 ├── docker-compose.yml
-├── alembic.ini
 ├── pyproject.toml
-├── .env
+├── alembic.ini
+├── .env.example
 └── README.md
 ```
 
 ---
 
-# 10. Application Architecture
+# API Overview
 
-TableTurn follows a layered backend architecture.
+The API is organized around the following resources:
 
-```text
-Client
-  │
-  ▼
-FastAPI Routes
-  │
-  ▼
-Services
-  │
-  ▼
-SQLModel / Database
-  │
-  ▼
-PostgreSQL
-```
+| Resource        | Purpose                         |
+| --------------- | ------------------------------- |
+| `/auth`         | Registration and authentication |
+| `/tables`       | Restaurant table management     |
+| `/reservations` | Reservation management          |
+| `/menu`         | Menu item management            |
+| `/orders`       | Order creation and management   |
+| `/kitchen`      | Kitchen queue and live updates  |
+| `/payments`     | Payment records                 |
+| `/webhook`      | Payment webhook processing      |
+| `/reports`      | Restaurant reporting            |
 
-Additional infrastructure supports specialized requirements:
-
-```text
-                 ┌─────────────┐
-                 │   FastAPI   │
-                 └──────┬──────┘
-                        │
-          ┌─────────────┼─────────────┐
-          │             │             │
-          ▼             ▼             ▼
-     PostgreSQL       Redis       Firestore
-      Main DB         Cache        KDS Data
-                                      │
-                                      ▼
-                                     SSE
-                                      │
-                                      ▼
-                                    Kitchen
-```
-
-### Why this separation?
-
-Routes handle HTTP concerns.
-
-Services contain business logic.
-
-Models describe database data.
-
-Schemas describe API input and output.
-
-This keeps the application easier to test, maintain and extend.
+Interactive API documentation is available through FastAPI's generated documentation when the application is running.
 
 ---
 
-# 11. Running the Project
+# Database Design
+
+The main entities are:
+
+```text
+User
+ │
+ ├── Reservation
+ │       │
+ │       └── RestaurantTable
+ │
+ └── Order
+        │
+        ├── OrderItem
+        │       │
+        │       └── MenuItem
+        │
+        └── Payment
+```
+
+A separate `ProcessedEvent` entity is used to track processed webhook events and support idempotent event handling.
+
+---
+
+# Running the Project
 
 ## Requirements
 
-You need:
-
 * Python 3.14+
+* uv
 * Docker
 * Docker Compose
-* Git
-* `uv`
 
----
-
-## Clone the repository
+## 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd TABLETURN-Restaurant-Reservations-Kitchen-Orders
 ```
 
----
-
-## Install dependencies
+## 2. Install dependencies
 
 ```bash
 uv sync
 ```
 
----
+## 3. Configure environment variables
 
-## Configure environment variables
+Create a local `.env` file from the provided example:
 
-Create a `.env` file:
-
-```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/tableturn
-SECRET_KEY=change-this-in-development
+```bash
+cp .env.example .env
 ```
 
-Additional Firebase configuration is required for the live kitchen stream.
+Configure your local values:
 
-The Firebase service account file should **never be committed to Git**.
+```env
+DATABASE_URL=<your-database-url>
+SECRET_KEY=<your-secret-key>
+PAYSTACK_SECRET_KEY=<your-paystack-secret>
+```
 
----
+Never commit real credentials to the repository.
 
-## Start infrastructure
+## 4. Start infrastructure
 
 ```bash
 docker compose up -d
 ```
 
-This starts the required infrastructure such as:
+This starts the required development infrastructure such as PostgreSQL and Redis.
 
-* PostgreSQL
-* Redis
-
----
-
-## Run database migrations
+## 5. Run migrations
 
 ```bash
 uv run alembic upgrade head
 ```
 
----
-
-## Start the API
+## 6. Start the API
 
 ```bash
-uv run fastapi dev app/main.py
+uv run fastapi dev
 ```
 
-The API will normally be available at:
-
-```text
-http://127.0.0.1:8000
-```
+The API documentation will then be available through the FastAPI development server.
 
 ---
 
-# 12. API Documentation
+# Environment Variables
 
-FastAPI automatically provides interactive API documentation.
+Sensitive configuration is supplied through environment variables.
 
-### Swagger UI
+Example `.env.example`:
 
-```text
-/api/docs
+```env
+DATABASE_URL=<your-database-url>
+SECRET_KEY=<your-secret-key>
+PAYSTACK_SECRET_KEY=<your-paystack-secret>
 ```
 
-Example:
+No real database passwords, JWT secrets, Paystack keys, Firebase credentials, or other private credentials should be stored in:
 
-```text
-http://127.0.0.1:8000/docs
-```
-
-### ReDoc
-
-```text
-/redoc
-```
-
-Example:
-
-```text
-http://127.0.0.1:8000/redoc
-```
-
-Swagger can be used to register users, authenticate, obtain a JWT token and test protected endpoints.
+* `README.md`
+* `.env.example`
+* source code
+* screenshots
+* public documentation
+* Git history
 
 ---
 
-# 13. Database Migrations
+# Testing
 
-Alembic manages database schema changes.
+The project uses `pytest` for automated testing.
 
-Create a migration after changing models:
+Tests are intended to cover the system's critical business rules, particularly:
 
-```bash
-uv run alembic revision --autogenerate -m "describe change"
-```
+* Authentication
+* Role-based authorization
+* Table management
+* Reservation creation
+* Reservation overlap detection
+* Reservation concurrency
+* Reservation cancellation
+* Menu validation
+* Order creation
+* Order totals
+* Kitchen state transitions
+* Payment processing
+* Webhook signature verification
+* Webhook idempotency
+* Kitchen/SSE behaviour
 
-Apply migrations:
-
-```bash
-uv run alembic upgrade head
-```
-
-Check the current migration:
-
-```bash
-uv run alembic current
-```
-
----
-
-# 14. Testing
-
-TableTurn uses **pytest** for automated testing.
-
-Run the complete test suite:
+Run the test suite with:
 
 ```bash
 uv run pytest
 ```
 
-Run with detailed output:
+---
 
-```bash
-uv run pytest -v
-```
+# Error Handling
 
-The test suite covers important application behaviour including authentication, authorization, reservations, orders, payments, webhooks and other business rules.
+TableTurn uses appropriate HTTP responses for different classes of failures.
+
+Examples include:
+
+| Status | Meaning                  |
+| ------ | ------------------------ |
+| `400`  | Invalid request          |
+| `401`  | Authentication required  |
+| `403`  | Insufficient permissions |
+| `404`  | Resource not found       |
+| `409`  | Business-rule conflict   |
+| `422`  | Validation error         |
+| `500`  | Unexpected server error  |
+
+A `409 Conflict` is particularly important for business rules such as invalid kitchen state transitions and reservation conflicts.
 
 ---
 
-# 15. Security
+# Security
 
-TableTurn includes several security mechanisms:
+The application includes several security mechanisms:
 
-* Password hashing with Argon2
 * JWT authentication
-* Role-based authorization
-* Signed payment webhooks
-* HMAC-SHA512 signature verification
-* Webhook idempotency
-* Rate limiting
+* Password hashing
+* Role-based access control
+* Protected routes
 * Environment-based secrets
-* Protected staff endpoints
+* Paystack webhook signature verification
+* Webhook idempotency tracking
+* Input validation
+* Database transactions for critical operations
 
-Sensitive credentials and service-account files should never be committed to the repository.
-
----
-
-# 16. Error Handling
-
-The API uses standard HTTP status codes to communicate the result of requests.
-
-Examples:
-
-```text
-201 Created
-200 OK
-401 Unauthorized
-403 Forbidden
-404 Not Found
-409 Conflict
-422 Unprocessable Entity
-```
-
-Examples of business conflicts include:
-
-* Duplicate user registration
-* Reservation overlap
-* Invalid order status transition
-* Duplicate payment processing
-* Attempting to modify resources without the required role
+Secrets are intentionally excluded from public project documentation.
 
 ---
 
-# 17. Background Processing
+# Development Workflow
 
-TableTurn uses FastAPI background tasks for work that does not need to block the main request-response cycle.
-
-For example, webhook processing can trigger background logging after the main payment operation has completed.
-
-This keeps the primary API operation focused on the required business transaction.
-
----
-
-# 18. Docker
-
-Docker is used to provide consistent local infrastructure.
-
-The project uses containers for services such as:
-
-```text
-PostgreSQL
-Redis
-```
-
-Start services:
-
-```bash
-docker compose up -d
-```
-
-Stop services:
-
-```bash
-docker compose down
-```
-
-View running containers:
-
-```bash
-docker ps
-```
-
----
-
-# 19. Development Workflow
-
-The project follows a feature-based Git workflow.
+The project uses Git branches to separate feature development.
 
 Typical workflow:
 
 ```text
-Create feature branch
-       ↓
-Implement feature
-       ↓
-Run tests
-       ↓
-Review changes
-       ↓
-Commit
-       ↓
-Merge into main
+main
+ │
+ ├── feature/auth
+ ├── feature/reservations
+ ├── feature/menu
+ ├── feature/orders
+ └── feature/kitchen
 ```
 
-Conventional Commit messages are used where possible:
+Features are developed and tested independently before being merged into the main branch.
+
+---
+
+# Project Objectives
+
+The project aims to demonstrate practical backend engineering skills through a real-world restaurant workflow.
+
+The main objectives are to:
+
+1. Build a structured REST API using FastAPI.
+2. Model relational restaurant data using SQLModel and PostgreSQL.
+3. Implement secure authentication and role-based authorization.
+4. Solve exact reservation overlap detection.
+5. Handle concurrent reservation attempts safely.
+6. Implement a controlled kitchen order state machine.
+7. Provide real-time kitchen updates.
+8. Integrate payment processing and secure webhooks.
+9. Use caching to improve frequently accessed data.
+10. Apply database migrations using Alembic.
+11. Containerize development infrastructure with Docker.
+12. Test important business rules with automated tests.
+
+---
+
+# Current Development Status
+
+TableTurn is an active capstone project under development.
+
+### Implemented / Substantially Implemented
+
+* Authentication and JWT authorization
+* Role-based access control
+* Restaurant table management foundation
+* Reservation management
+* Exact reservation overlap detection
+* Reservation capacity validation
+* Reservation status management
+* Menu management
+* Redis caching
+* Order management foundation
+* Order item pricing snapshots
+* Kitchen order workflow
+* SSE kitchen feed foundation
+* Payment records
+* Paystack webhook verification foundation
+* Webhook event tracking
+* PostgreSQL and Docker infrastructure
+* Alembic migrations
+
+### Remaining / Under Final Verification
+
+* Full asynchronous database implementation
+* Complete automated test coverage
+* Final order authorization audit
+* Complete table CRUD verification
+* Payment/webhook hardening
+* Comprehensive SSE testing
+* CI/CD verification
+* Final security and dependency audit
+* Final API and documentation review
+
+The status above is intentionally separated so the documentation reflects the actual development state rather than presenting unfinished functionality as production-ready.
+
+---
+
+# Learning Outcomes
+
+Through TableTurn, the project demonstrates practical experience with:
+
+* REST API development
+* FastAPI
+* SQLModel
+* PostgreSQL
+* Database transactions
+* Concurrency control
+* Time-interval algorithms
+* Authentication and authorization
+* State machines
+* Real-time communication
+* Redis caching
+* Payment webhooks
+* Idempotent event processing
+* Database migrations
+* Docker
+* Automated testing
+* Layered backend architecture
+
+---
+
+# Key Technical Challenge
+
+The central technical challenge of TableTurn is not simply creating a reservation endpoint.
+
+It is ensuring that **the same limited restaurant table cannot be successfully allocated to two overlapping reservations, even when requests arrive concurrently**.
+
+The system therefore combines:
 
 ```text
-feat: add reservation seating
-fix: prevent duplicate payment events
-refactor: move authentication logic into service layer
-test: add reservation conflict tests
+Exact interval mathematics
+        +
+Transactional database operations
+        +
+Row-level locking
+        +
+Validation
 ```
 
----
+with a second workflow that converts:
 
-# 20. Project Goals
+```text
+Restaurant Order
+       ↓
+Kitchen Ticket
+       ↓
+NEW
+       ↓
+PREPARING
+       ↓
+READY
+       ↓
+SERVED
+```
 
-TableTurn was built to demonstrate how a production-style restaurant backend can combine:
-
-* REST APIs
-* relational databases
-* authentication
-* authorization
-* caching
-* real-time communication
-* payment processing
-* webhook security
-* automated testing
-* containerized infrastructure
-* database migrations
-* background processing
-
-The project focuses not only on exposing endpoints, but also on enforcing the business rules that make those endpoints reliable.
+This combination forms the core engineering problem behind TableTurn.
 
 ---
 
-## 21. Status
+# Project Goal
 
-TableTurn is a backend capstone project implementing the core restaurant workflow from reservation through order, kitchen preparation and payment.
+TableTurn aims to provide a reliable backend foundation for restaurant operations by solving two high-impact problems:
 
-Current development priorities include completing the automated test suite, CI/CD and final deployment/documentation verification.
+**Preventing table double-bookings through exact, concurrency-safe reservation handling, while replacing unreliable paper kitchen tickets with a structured and real-time digital kitchen workflow.**
 
----
+The result is a backend architecture that connects the restaurant's **tables, reservations, orders, kitchen, menu, and payments** into a single system.
 
-## License
-
-This project was created as a backend capstone project for educational and demonstration purposes.
