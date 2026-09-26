@@ -42,6 +42,7 @@ class Order(SQLModel, table=True):
                 ],
                 name="orderstatus",
             ),
+            nullable=False,
             index=True,
         ),
     )
