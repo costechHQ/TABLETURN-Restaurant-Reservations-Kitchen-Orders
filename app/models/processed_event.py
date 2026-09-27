@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel
 
+from sqlmodel import Field, SQLModel
 
 
 class ProcessedEvent(SQLModel, table=True):
@@ -15,6 +15,8 @@ class ProcessedEvent(SQLModel, table=True):
         unique=True,
         index=True,
     )
+
+    reference: str
 
     processed_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)

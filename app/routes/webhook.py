@@ -40,7 +40,7 @@ async def payment_webhook(
     body = await request.body()
 
     expected_signature = hmac.new(
-        settings.secret_key.encode(),
+        settings.paystack_secret_key.encode(),
         body,
         hashlib.sha512,
     ).hexdigest()

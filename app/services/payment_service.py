@@ -5,12 +5,13 @@ from app.models.order import Order
 from app.models.payment import Payment, PaymentStatus
 from app.schemas.payment import PaymentCreate
 
-
 def create_payment(
     session: Session,
     order_id: int,
     data: PaymentCreate,
+    recorded_by: int,
 ) -> Payment:
+
     order = session.get(Order, order_id)
 
     if not order:
@@ -37,6 +38,7 @@ def create_payment(
         reference=data.reference,
         amount=order.total_amount,
         method=data.method,
+        recorded_by=recorded_by,
         status=PaymentStatus.PENDING,
     )
 

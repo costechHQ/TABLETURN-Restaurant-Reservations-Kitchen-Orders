@@ -1,7 +1,8 @@
-from sqlmodel import SQLModel, Field
-from enum import Enum
-from decimal import Decimal
 from datetime import datetime, timezone
+from decimal import Decimal
+from enum import Enum
+
+from sqlmodel import Field, SQLModel
 
 
 class PaymentStatus(str, Enum):
@@ -15,14 +16,27 @@ class Payment(SQLModel, table=True):
 
     id: int | None = Field(
         default=None,
-        primary_key=True
+        primary_key=True,
     )
 
-    order_id: int = Field(foreign_key="orders.id", index=True)
-    reference: str = Field(unique=True, index=True)
+    order_id: int = Field(
+        foreign_key="orders.id",
+        index=True,
+    )
+
+    reference: str = Field(
+        unique=True,
+        index=True,
+    )
+
     amount: Decimal
 
     method: str
+
+    recorded_by: int = Field(
+        foreign_key="users.id",
+        index=True,
+    )
 
     recorded_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -30,5 +44,5 @@ class Payment(SQLModel, table=True):
 
     status: PaymentStatus = Field(
         default=PaymentStatus.PENDING,
-        index=True
+        index=True,
     )

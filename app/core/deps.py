@@ -1,3 +1,5 @@
+
+import jwt
 from typing import Annotated, Callable
 from fastapi import Depends, HTTPException, status
 #from fastapi.security import OAuth2PasswordBearer
@@ -26,7 +28,7 @@ def get_current_user(
     try:
         payload = decode_access_token(credentials.credentials)
         user_id = int(payload["sub"])
-    except (KeyError, TypeError, ValueError):
+    except (jwt.PyJWTError, KeyError, TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authetication credentials",

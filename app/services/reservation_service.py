@@ -22,23 +22,24 @@ def create_reservation(
     diner_id: int,
 ) -> Reservation:
 
-
-    # Check that the end time is after the start time
     if data.end_at <= data.start_at:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="End time must be after start time",
         )
 
-    # Check that reservation does not start in the past
     if data.start_at < datetime.now(data.start_at.tzinfo):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Reservation cannot start in the past",
         )
 
-    # Find the table
-    table = session.get(RestaurantTable, data.table_id)
+
+    table = session.exec(
+        select(RestaurantTable)
+        .where(RestaurantTable.id == data.table_id)
+        .with_for_update()
+    ).first()
 
     if not table:
         raise HTTPException(
@@ -46,26 +47,21 @@ def create_reservation(
             detail="Table not found",
         )
 
-    # Check table capacity
     if data.party_size > table.capacity:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Party size exceeds table capacity",
         )
 
-    # Lock reservations for this table
     existing_reservations = session.exec(
         select(Reservation)
         .where(
             Reservation.table_id == data.table_id,
             Reservation.status != ReservationStatus.CANCELLED,
         )
-        .with_for_update()
     ).all()
 
-    # Exact overlap check
     for reservation in existing_reservations:
-
         overlaps = (
             data.start_at < reservation.end_at
             and data.end_at > reservation.start_at
