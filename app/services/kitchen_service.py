@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from app.models.order import Order, OrderStatus
 from app.schemas.orders import OrderStatusUpdate
 from app.core.firebase import db
+from app.services.floor_feed_service import add_floor_feed_event
 
 
 VALID_TRANSITIONS = {
@@ -51,11 +52,16 @@ def update_order_status(
     order.status = new_status
     order.updated_at = datetime.now(timezone.utc)
 
-    session.add(order)
     session.commit()
     session.refresh(order)
-
     sync_order_to_kds(order)
+
+    if new_status == OrderStatus.READY:
+        add_floor_feed_event(
+            "order_ready",
+            order_id=order.id,
+            table_id=order.table_id,
+        )
 
     return order
 
