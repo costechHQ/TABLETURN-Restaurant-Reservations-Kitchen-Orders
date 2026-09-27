@@ -74,3 +74,67 @@ def test_diner_can_create_reservation(client):
     assert data["diner_id"] == diner.id
     assert data["party_size"] == 2
     assert data["status"] == "confirmed"
+
+
+def test_overlapping_reservation_is_rejected(client):
+    password = "TestPassword123!"
+
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="RES02",
+            capacity=4,
+        )
+
+        diner = User(
+            email="pytest_diner_overlap@example.com",
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        session.add(table)
+        session.add(diner)
+        session.commit()
+        session.refresh(table)
+
+        table_id = table.id
+
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "pytest_diner_overlap@example.com",
+            "password": password,
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+
+    start = datetime.now(timezone.utc) + timedelta(hours=2)
+    end = start + timedelta(hours=1)
+
+    first_response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert first_response.status_code == 201
+
+    overlapping_response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": (start + timedelta(minutes=30)).isoformat(),
+            "end_at": (end + timedelta(minutes=30)).isoformat(),
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert overlapping_response.status_code == 409
