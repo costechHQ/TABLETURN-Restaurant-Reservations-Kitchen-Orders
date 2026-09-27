@@ -125,3 +125,45 @@ def test_waiter_can_add_order_item(client):
     assert data["qty"] == 2
     assert Decimal(str(data["unit_price"])) == Decimal("2500.00")
     assert Decimal(str(data["total_price"])) == Decimal("5000.00")
+
+
+def test_add_item_to_nonexistent_order_returns_404(client):
+    with Session(engine) as session:
+        menu_item = MenuItem(
+            name="Fried Rice",
+            description="Nigerian fried rice served with mixed vegetables",
+            price=Decimal("3000.00"),
+            is_available=True,
+        )
+
+        waiter = User(
+            email="pytest_waiter_missing_order@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(menu_item)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(menu_item)
+        session.refresh(waiter)
+
+        menu_item_id = menu_item.id
+        waiter_id = waiter.id
+
+    token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    response = client.post(
+        "/api/v1/orders/99999/items",
+        json={
+            "menu_item_id": menu_item_id,
+            "qty": 1,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
