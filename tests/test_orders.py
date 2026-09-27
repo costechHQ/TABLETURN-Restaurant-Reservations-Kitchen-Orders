@@ -220,3 +220,263 @@ def test_kitchen_can_move_order_to_preparing(client):
 
     assert status_response.status_code == 200
     assert status_response.json()["status"] == "preparing"
+
+
+def test_reject_invalid_order_status_transition(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T04",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_invalid_status@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    order_response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert order_response.status_code == 201
+
+    order_id = order_response.json()["id"]
+
+    kitchen_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.KITCHEN.value,
+    )
+
+    response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "ready"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert response.status_code == 409
+
+
+def test_kitchen_can_move_order_to_ready(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T04",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_ready@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    waiter_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    order_response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {waiter_token}"},
+    )
+
+    assert order_response.status_code == 201
+
+    order_id = order_response.json()["id"]
+
+    kitchen_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.KITCHEN.value,
+    )
+
+    preparing_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "preparing"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert preparing_response.status_code == 200
+
+    ready_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "ready"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert ready_response.status_code == 200
+    assert ready_response.json()["status"] == "ready"
+
+
+def test_kitchen_can_move_order_to_served(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T05",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_served@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    waiter_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    order_response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {waiter_token}"},
+    )
+
+    assert order_response.status_code == 201
+
+    order_id = order_response.json()["id"]
+
+    kitchen_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.KITCHEN.value,
+    )
+
+    preparing_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "preparing"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert preparing_response.status_code == 200
+
+    ready_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "ready"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert ready_response.status_code == 200
+
+    served_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "served"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert served_response.status_code == 200
+    assert served_response.json()["status"] == "served"
+
+
+def test_waiter_can_create_payment(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T06",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_payment@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        menu_item = MenuItem(
+            name="Chicken Rice",
+            description="Rice served with grilled chicken and vegetables",
+            price=Decimal("2500.00"),
+            is_available=True,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.add(menu_item)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+        session.refresh(menu_item)
+
+        table_id = table.id
+        waiter_id = waiter.id
+        menu_item_id = menu_item.id
+
+    token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    order_response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert order_response.status_code == 201
+
+    order_id = order_response.json()["id"]
+
+    item_response = client.post(
+        f"/api/v1/orders/{order_id}/items",
+        json={
+            "menu_item_id": menu_item_id,
+            "qty": 1,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert item_response.status_code == 201
+
+    payment_response = client.post(
+        f"/api/v1/orders/{order_id}/payments",
+        json={
+            "reference": "TEST-PAYMENT-001",
+            "method": "cash",
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert payment_response.status_code == 201
+
+    data = payment_response.json()
+
+    assert data["order_id"] == order_id
+    assert Decimal(str(data["amount"])) == Decimal("2500.00")
+    assert data["method"] == "cash"
+    assert data["status"] == "pending"
