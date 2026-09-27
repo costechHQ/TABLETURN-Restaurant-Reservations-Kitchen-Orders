@@ -6,6 +6,7 @@ from app.models.table import RestaurantTable
 from app.models.user import User, UserRole
 from sqlmodel import Session
 from app.core.security import create_access_token
+from concurrent.futures import ThreadPoolExecutor
 
 
 def test_diner_can_create_reservation(client):
@@ -504,3 +505,75 @@ def test_reservation_start_in_past_returns_422(client):
     )
 
     assert response.status_code == 422
+
+
+
+    from concurrent.futures import ThreadPoolExecutor
+
+
+def test_concurrent_reservations_same_slot_one_succeeds_one_conflicts(client):
+    password = "TestPassword123!"
+
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="CONCURRENT01",
+            capacity=4,
+        )
+
+        diner1 = User(
+            email="concurrent_diner1@example.com",
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        diner2 = User(
+            email="concurrent_diner2@example.com",
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        session.add_all([table, diner1, diner2])
+        session.commit()
+        session.refresh(table)
+        session.refresh(diner1)
+        session.refresh(diner2)
+
+        table_id = table.id
+        diner1_id = diner1.id
+        diner2_id = diner2.id
+
+    token1 = create_access_token(
+        user_id=diner1_id,
+        role=UserRole.DINER.value,
+    )
+    token2 = create_access_token(
+        user_id=diner2_id,
+        role=UserRole.DINER.value,
+    )
+
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
+    end = start + timedelta(hours=1)
+
+    def make_reservation(token):
+        return client.post(
+            "/api/v1/reservations",
+            json={
+                "table_id": table_id,
+                "party_size": 2,
+                "start_at": start.isoformat(),
+                "end_at": end.isoformat(),
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(make_reservation, token1),
+            executor.submit(make_reservation, token2),
+        ]
+
+        responses = [future.result() for future in futures]
+
+    status_codes = sorted(response.status_code for response in responses)
+
+    assert status_codes == [201, 409]
