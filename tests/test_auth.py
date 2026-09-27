@@ -10,8 +10,8 @@ def test_register_user():
     response = client.post(
         "/api/v1/auth/register",
         json={
-            "email": "testuser@example.com",
-            "password": "TestPassword123!",
+            "email": "pytest_user_001@example.com",
+            "password": "pass@123",
             "role": "diner",
         },
     )
@@ -20,6 +20,6 @@ def test_register_user():
 
     data = response.json()
 
-    assert data["email"] == "testuser@example.com"
+    assert data["email"] == "pytest_user_001@example.com"
     assert data["role"] == "diner"
     assert "id" in data
