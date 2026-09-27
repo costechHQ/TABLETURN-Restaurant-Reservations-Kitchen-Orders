@@ -14,6 +14,7 @@ from app.schemas.reservations import (
     ReservationUpdate
 )
 from app.models.user import User, UserRole
+from app.services.floor_feed_service import add_floor_feed_event
 
 
 def create_reservation(
@@ -303,5 +304,11 @@ def seat_reservation(
     session.add(reservation)
     session.commit()
     session.refresh(reservation)
+
+    add_floor_feed_event(
+        "reservation_seated",
+        reservation_id=reservation.id,
+        table_id=reservation.table_id,
+    )
 
     return reservation
