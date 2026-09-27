@@ -5,6 +5,7 @@ from app.db.database import engine
 from app.models.table import RestaurantTable
 from app.models.user import User, UserRole
 from sqlmodel import Session
+from app.core.security import create_access_token
 
 
 def test_diner_can_create_reservation(client):
@@ -274,3 +275,80 @@ def test_reservation_owner_can_cancel(client):
     assert data["id"] == reservation_id
     assert data["diner_id"] == diner_id
     assert data["status"] == "cancelled"
+
+
+
+def test_waiter_can_cancel_reservation(client):
+    password = "TestPassword123!"
+    waiter_email = "pytest_waiter_cancel@example.com"
+    diner_email = "pytest_diner_waiter_cancel@example.com"
+
+    with Session(engine) as session:
+        table = RestaurantTable(code="RES06", capacity=4)
+
+        waiter = User(
+            email=waiter_email,
+            password_hash=hash_password(password),
+            role=UserRole.WAITER,
+        )
+
+        diner = User(
+            email=diner_email,
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.add(diner)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+        session.refresh(diner)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    diner_login = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": diner_email,
+            "password": password,
+        },
+    )
+
+    assert diner_login.status_code == 200
+
+    diner_token = diner_login.json()["access_token"]
+
+    start = datetime.now(timezone.utc) + timedelta(hours=5)
+    end = start + timedelta(hours=1)
+
+    reservation_response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {diner_token}"},
+    )
+
+    assert reservation_response.status_code == 201
+
+    reservation_id = reservation_response.json()["id"]
+
+    waiter_token = create_access_token(
+        user_id=waiter.id,
+        role=UserRole.WAITER.value,
+    )
+
+    cancel_response = client.post(
+        f"/api/v1/reservations/{reservation_id}/cancel",
+        headers={"Authorization": f"Bearer {waiter_token}"},
+    )
+
+    assert cancel_response.status_code == 200
+    assert cancel_response.json()["status"] == "cancelled"
