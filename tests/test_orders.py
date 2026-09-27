@@ -1,3 +1,4 @@
+import time
 from sqlmodel import Session
 
 from app.core.security import create_access_token, hash_password
@@ -631,4 +632,5 @@ def test_kitchen_stream_yields_event():
         assert '"status": "NEW"' in event
 
     finally:
+        generator.close()
         kitchen.stream_kitchen_events = original
