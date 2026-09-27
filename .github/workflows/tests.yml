@@ -45,6 +45,10 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --locked
+        
+      - name: Create Firebase credentials
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-service-account.json
+
 
       - name: Run migrations
         run: uv run alembic upgrade head
