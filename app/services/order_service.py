@@ -29,7 +29,7 @@ def create_order(
         table_id=data.table_id,
         waiter_id=waiter_id,
         status=OrderStatus.PLACED,
-        created_at=datetime.now(timezone.utc),
+        placed_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
 

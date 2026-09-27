@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from decimal import Decimal
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Index, Relationship, SQLModel
 from sqlalchemy import Column, Enum as SAEnum
 
 
@@ -51,7 +51,7 @@ class Order(SQLModel, table=True):
         default=Decimal("0.00"),
     )
 
-    created_at: datetime = Field(
+    placed_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -61,4 +61,12 @@ class Order(SQLModel, table=True):
 
     ordered_items: list["OrderItem"] = Relationship(
         back_populates="order"
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_orders_status_placed_at",
+            "status",
+            "placed_at",
+        ),
     )

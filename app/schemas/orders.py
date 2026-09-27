@@ -35,7 +35,7 @@ class OrderResponse(BaseModel):
     table_id: int
     waiter_id: int
     status: OrderStatus
-    created_at: datetime
+    placed_at: datetime
     updated_at: datetime
     ordered_items: list[OrderItemResponse]
 
@@ -60,6 +60,6 @@ class KitchenQueueResponse(BaseModel):
     waiter_id: int
     status: OrderStatus
     total_amount: Decimal
-    created_at: datetime
+    placed_at: datetime
     updated_at: datetime
     ordered_items: list[KitchenQueueItemResponse]
