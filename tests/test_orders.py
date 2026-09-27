@@ -592,3 +592,43 @@ def test_unknown_order_status_returns_404(client):
     )
 
     assert response.status_code == 404
+
+
+
+
+def test_kitchen_stream_yields_event():
+    from queue import Queue
+
+    from app.routes import kitchen
+
+    events = Queue()
+    events.put({
+        "type": "ADDED",
+        "data": {
+            "order_id": 123,
+            "status": "NEW",
+        },
+    })
+
+    class FakeWatch:
+        def unsubscribe(self):
+            pass
+
+    def fake_stream_kitchen_events():
+        return events, FakeWatch()
+
+    original = kitchen.stream_kitchen_events
+    kitchen.stream_kitchen_events = fake_stream_kitchen_events
+
+    try:
+        generator = kitchen.event_generator()
+
+        assert next(generator) == "data: connected\n\n"
+
+        event = next(generator)
+
+        assert "123" in event
+        assert '"status": "NEW"' in event
+
+    finally:
+        kitchen.stream_kitchen_events = original
