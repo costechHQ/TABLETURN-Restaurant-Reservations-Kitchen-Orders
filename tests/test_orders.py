@@ -167,3 +167,56 @@ def test_add_item_to_nonexistent_order_returns_404(client):
     )
 
     assert response.status_code == 404
+
+
+def test_kitchen_can_move_order_to_preparing(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T03",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_status@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    waiter_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    order_response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {waiter_token}"},
+    )
+
+    assert order_response.status_code == 201
+
+    order_id = order_response.json()["id"]
+
+    kitchen_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.KITCHEN.value,
+    )
+
+    status_response = client.post(
+        f"/api/v1/orders/{order_id}/status",
+        json={"status": "preparing"},
+        headers={"Authorization": f"Bearer {kitchen_token}"},
+    )
+
+    assert status_response.status_code == 200
+    assert status_response.json()["status"] == "preparing"
