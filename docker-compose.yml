@@ -17,6 +17,19 @@ services:
     ports:
       - "6379:6379"
 
+  app:
+    build: .
+    container_name: tableturn-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    environment:
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+    depends_on:
+      - postgres
+      - redis
+
 volumes:
   postgres_data:
 
