@@ -423,3 +423,84 @@ def test_waiter_can_seat_reservation(client):
     assert seat_response.status_code == 200
     assert seat_response.json()["id"] == reservation_id
     assert seat_response.json()["status"] == "seated"
+
+
+def test_party_size_above_table_capacity_returns_422(client):
+    password = "TestPassword123!"
+
+    with Session(engine) as session:
+        table = RestaurantTable(code="RES08", capacity=4)
+        session.add(table)
+        session.commit()
+        session.refresh(table)
+        table_id = table.id
+
+        diner = User(
+            email="capacity@test.com",
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+        session.add(diner)
+        session.commit()
+        session.refresh(diner)
+
+    token = create_access_token(diner.id, diner.role)
+
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
+    end = start + timedelta(hours=1)
+
+    response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 5,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+
+def test_reservation_start_in_past_returns_422(client):
+    password = "TestPassword123!"
+
+    with Session(engine) as session:
+        table = RestaurantTable(code="RES09", capacity=4)
+        session.add(table)
+        session.commit()
+        session.refresh(table)
+        table_id = table.id
+
+        diner = User(
+            email="past@test.com",
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+        session.add(diner)
+        session.commit()
+        session.refresh(diner)
+
+    token = create_access_token(diner.id, diner.role)
+
+    start = datetime.now(timezone.utc) - timedelta(hours=1)
+    end = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 422
