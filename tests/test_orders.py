@@ -531,3 +531,36 @@ def test_waiter_can_create_payment(client):
     assert Decimal(str(data["amount"])) == Decimal("2500.00")
     assert data["method"] == "cash"
     assert data["status"] == "pending"
+
+
+def test_kitchen_queue_requires_authentication(client):
+    response = client.get("/api/v1/kitchen/queue")
+
+    assert response.status_code == 401
+
+
+def test_diner_cannot_access_kitchen_queue(client):
+    with Session(engine) as session:
+        diner = User(
+            email="pytest_diner_kitchen@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.DINER,
+        )
+
+        session.add(diner)
+        session.commit()
+        session.refresh(diner)
+
+        diner_id = diner.id
+
+    token = create_access_token(
+        user_id=diner_id,
+        role=UserRole.DINER.value,
+    )
+
+    response = client.get(
+        "/api/v1/kitchen/queue",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 403
