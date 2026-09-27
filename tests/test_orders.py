@@ -564,3 +564,31 @@ def test_diner_cannot_access_kitchen_queue(client):
     )
 
     assert response.status_code == 403
+
+
+def test_unknown_order_status_returns_404(client):
+    with Session(engine) as session:
+        waiter = User(
+            email="pytest_waiter_unknown_order@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(waiter)
+        session.commit()
+        session.refresh(waiter)
+
+        waiter_id = waiter.id
+
+    token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    response = client.post(
+        "/api/v1/orders/999999/status",
+        json={"status": "preparing"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
