@@ -205,3 +205,72 @@ def test_back_to_back_reservations_are_allowed(client):
     )
 
     assert second_response.status_code == 201
+
+
+def test_reservation_owner_can_cancel(client):
+    password = "TestPassword123!"
+    email = "pytest_diner_cancel@example.com"
+
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="RES04",
+            capacity=4,
+        )
+
+        diner = User(
+            email=email,
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        session.add(table)
+        session.add(diner)
+        session.commit()
+        session.refresh(table)
+        session.refresh(diner)
+
+        table_id = table.id
+        diner_id = diner.id
+
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+
+    start = datetime.now(timezone.utc) + timedelta(hours=5)
+    end = start + timedelta(hours=1)
+
+    reservation_response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert reservation_response.status_code == 201
+
+    reservation_id = reservation_response.json()["id"]
+
+    cancel_response = client.post(
+        f"/api/v1/reservations/{reservation_id}/cancel",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert cancel_response.status_code == 200
+
+    data = cancel_response.json()
+
+    assert data["id"] == reservation_id
+    assert data["diner_id"] == diner_id
+    assert data["status"] == "cancelled"
