@@ -56,6 +56,57 @@ def test_waiter_can_create_order(client):
     assert data["ordered_items"] == []
 
 
+def test_placed_order_appears_in_kitchen_queue_as_new(client):
+    with Session(engine) as session:
+        table = RestaurantTable(
+            code="T03",
+            capacity=4,
+        )
+
+        waiter = User(
+            email="pytest_waiter_kitchen@example.com",
+            password_hash=hash_password("TestPassword123!"),
+            role=UserRole.WAITER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+
+        table_id = table.id
+        waiter_id = waiter.id
+
+    token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    response = client.post(
+        "/api/v1/orders",
+        json={"table_id": table_id},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 201
+
+    order_id = response.json()["id"]
+
+    from app.core.firebase import db
+
+    document = db.collection("kitchen_queue").document(str(order_id)).get()
+
+    assert document.exists
+    data = document.to_dict()
+
+    assert data["order_id"] == order_id
+    assert data["status"] == "NEW"
+
+
+
+
 def test_waiter_can_add_order_item(client):
     with Session(engine) as session:
         table = RestaurantTable(

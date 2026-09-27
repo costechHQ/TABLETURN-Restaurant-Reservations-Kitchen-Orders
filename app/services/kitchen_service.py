@@ -92,7 +92,7 @@ def sync_order_to_kds(order: Order) -> None:
         "order_id": order.id,
         "table_id": order.table_id,
         "waiter_id": order.waiter_id,
-        "status": order.status.value,
+        "status": "NEW" if order.status == OrderStatus.PLACED else order.status.value,
         "total_amount": str(order.total_amount),
         "items": items,
         "updated_at": order.updated_at.isoformat(),

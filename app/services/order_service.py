@@ -36,6 +36,7 @@ def create_order(
     session.add(order)
     session.commit()
     session.refresh(order)
+    sync_order_to_kds(order)
 
     return order
 
