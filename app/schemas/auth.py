@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, EmailStr
 from app.models.user import UserRole
 
@@ -23,3 +24,13 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class StaffCreateRequest(BaseModel):
+    email: EmailStr
+    password: str
+    role: Literal[
+        UserRole.WAITER,
+        UserRole.KITCHEN,
+        UserRole.MANAGER,
+    ]

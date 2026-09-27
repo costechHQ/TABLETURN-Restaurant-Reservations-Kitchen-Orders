@@ -2,7 +2,11 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
 from app.models.user import User, UserRole
-from app.schemas.auth import RegisterRequest, LoginRequest
+from app.schemas.auth import (
+    RegisterRequest, 
+    LoginRequest, 
+    StaffCreateRequest
+)
 from app.core.security import (
     hash_password,
     verify_password,
@@ -33,6 +37,35 @@ def register_user(
         email=data.email,
         password_hash=hashed_password,
         role=UserRole.DINER,
+    )
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
+
+
+def create_staff_user(
+    session: Session,
+    data: StaffCreateRequest,
+) -> User:
+    existing_user = session.exec(
+        select(User).where(
+            User.email == data.email
+        )
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered",
+        )
+
+    user = User(
+        email=data.email,
+        password_hash=hash_password(data.password),
+        role=data.role,
     )
 
     session.add(user)
