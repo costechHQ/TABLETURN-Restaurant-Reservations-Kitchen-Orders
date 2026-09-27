@@ -182,3 +182,27 @@ def test_duplicate_payment_webhook_event_is_ignored(client):
         ).all()
 
         assert len(events) == 1
+
+
+def test_invalid_payment_webhook_signature_returns_401(client):
+    payload = {
+        "data": {
+            "id": "event-invalid-signature",
+            "reference": "INVALID-SIGNATURE-001",
+            "status": "success",
+        }
+    }
+
+    body = json.dumps(payload).encode()
+
+    response = client.post(
+        "/api/v1/webhooks/payment",
+        content=body,
+        headers={
+            "x-paystack-signature": "invalid-signature",
+            "content-type": "application/json",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid Paystack signature"
