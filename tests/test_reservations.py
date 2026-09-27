@@ -352,3 +352,74 @@ def test_waiter_can_cancel_reservation(client):
 
     assert cancel_response.status_code == 200
     assert cancel_response.json()["status"] == "cancelled"
+
+
+def test_waiter_can_seat_reservation(client):
+    password = "TestPassword123!"
+    waiter_email = "pytest_waiter_seat@example.com"
+    diner_email = "pytest_diner_seat@example.com"
+
+    with Session(engine) as session:
+        table = RestaurantTable(code="RES07", capacity=4)
+
+        waiter = User(
+            email=waiter_email,
+            password_hash=hash_password(password),
+            role=UserRole.WAITER,
+        )
+
+        diner = User(
+            email=diner_email,
+            password_hash=hash_password(password),
+            role=UserRole.DINER,
+        )
+
+        session.add(table)
+        session.add(waiter)
+        session.add(diner)
+        session.commit()
+
+        session.refresh(table)
+        session.refresh(waiter)
+        session.refresh(diner)
+
+        table_id = table.id
+        waiter_id = waiter.id
+        diner_id = diner.id
+
+    diner_token = create_access_token(
+        user_id=diner_id,
+        role=UserRole.DINER.value,
+    )
+
+    start = datetime.now(timezone.utc) + timedelta(hours=5)
+    end = start + timedelta(hours=1)
+
+    reservation_response = client.post(
+        "/api/v1/reservations",
+        json={
+            "table_id": table_id,
+            "party_size": 2,
+            "start_at": start.isoformat(),
+            "end_at": end.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {diner_token}"},
+    )
+
+    assert reservation_response.status_code == 201
+
+    reservation_id = reservation_response.json()["id"]
+
+    waiter_token = create_access_token(
+        user_id=waiter_id,
+        role=UserRole.WAITER.value,
+    )
+
+    seat_response = client.post(
+        f"/api/v1/reservations/{reservation_id}/seat",
+        headers={"Authorization": f"Bearer {waiter_token}"},
+    )
+
+    assert seat_response.status_code == 200
+    assert seat_response.json()["id"] == reservation_id
+    assert seat_response.json()["status"] == "seated"
