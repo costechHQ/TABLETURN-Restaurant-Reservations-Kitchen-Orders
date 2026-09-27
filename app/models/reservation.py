@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import DateTime
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Index, SQLModel
 
 
 class ReservationStatus(str, Enum):
@@ -39,4 +39,13 @@ class Reservation(SQLModel, table=True):
 
     status: ReservationStatus = Field(
         default=ReservationStatus.CONFIRMED
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_reservations_table_start_end",
+            "table_id",
+            "start_at",
+            "end_at",
+        ),
     )
