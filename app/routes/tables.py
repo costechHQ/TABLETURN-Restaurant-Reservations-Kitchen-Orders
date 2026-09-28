@@ -7,6 +7,7 @@ from datetime import datetime
 from app.schemas.reservations import AvailabilityQuery
 from app.services.reservation_service import check_availability
 
+from sqlalchemy.exc import IntegrityError
 from app.core.deps import get_current_user, require_role
 from app.db.session import get_session
 from app.models.user import User, UserRole
@@ -39,11 +40,18 @@ def create_table(
     )
 
     session.add(table)
-    session.commit()
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Table code already exists",
+        )
+
     session.refresh(table)
-
     return table
-
 
 
 @router.get("/availability")

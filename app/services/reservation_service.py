@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
@@ -112,18 +112,15 @@ def get_reservations(
         detail="You do not have access to reservations",
     )
 
-
-
 def check_availability(
-        session: Session,
-        data: AvailabilityQuery,
+    session: Session,
+    data: AvailabilityQuery,
 ) -> list[RestaurantTable]:
-
     if data.end <= data.start:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="End time must be after start time",
-    )
+        )
 
     tables = session.exec(
         select(RestaurantTable).where(
@@ -141,11 +138,28 @@ def check_availability(
             )
         ).all()
 
-        has_overlap = any(
-            data.start < reservation.end_at
-            and data.end > reservation.start_at
-            for reservation in reservations
-        )
+        has_overlap = False
+
+        for reservation in reservations:
+            reservation_start = reservation.start_at
+            reservation_end = reservation.end_at
+
+            if reservation_start.tzinfo is None:
+                reservation_start = reservation_start.replace(
+                    tzinfo=timezone.utc
+                )
+
+            if reservation_end.tzinfo is None:
+                reservation_end = reservation_end.replace(
+                    tzinfo=timezone.utc
+                )
+
+            if (
+                data.start < reservation_end
+                and data.end > reservation_start
+            ):
+                has_overlap = True
+                break
 
         if not has_overlap:
             available_tables.append(table)
